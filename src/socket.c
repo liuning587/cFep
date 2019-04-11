@@ -321,6 +321,11 @@ socket_listen(unsigned short port,
 #ifdef _WIN32
     u_long mode = 1;
     ioctlsocket((SOCKET)listen_fd, FIONBIO, &mode);
+
+#define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
+	BOOL bNewBehavior = FALSE;
+	DWORD dwBytesReturned = 0;
+	WSAIoctl((SOCKET)listen_fd, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 #else
     #if 0
     int flags = fcntl(listen_fd, F_GETFL);
@@ -559,7 +564,7 @@ socket_recvfrom(int socket,
     if (len <= 0)
     {
         err = errno;
-        if (len == 0 || (!((err == EINTR || err == EWOULDBLOCK || err == EAGAIN))))
+        if (len == 0 || (!((err == EINTR || err == EWOULDBLOCK || err == EAGAIN || err == 10054)))) //WSAECONNRESET:10054
         {
             //printf("recvfrom len:%d err:%d\n", len, err);
             return -1;

@@ -23,7 +23,7 @@
 #include "taskLib.h"
 #include "ttynet.h"
 
-#define VERSION     "1.2.2"
+#define VERSION     "1.2.3"
 #define SOFTNAME    "cFep"
 
 static const ptcl_func_t *ptcl = NULL;
