@@ -32,6 +32,11 @@ typedef enum
 
 typedef struct
 {
+    int support_front;                      /**< 是否启用前置通信 */
+    char front_ip[64];                      /**< 前置IP地址 */
+    unsigned short int front_tcp_port;      /**< 前置TCP端口 */
+    int front_timeout;                      /**< 前置通信超时(单位: us) */
+
     unsigned short int app_tcp_port;        /**< 后台TCP端口 */
     unsigned short int terminal_tcp_port;   /**< 终端TCP端口 */
     unsigned short int terminal_udp_port;   /**< 终端UDP端口 */
@@ -74,6 +79,8 @@ typedef struct
     slist_t app_tcp;
     slist_t terminal_tcp;
     slist_t terminal_udp;
+
+    int front_socket;
 } prun_t;
 
 /** 连接结构 */

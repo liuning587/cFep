@@ -19,7 +19,7 @@
   #include <ws2tcpip.h>
   #include <windows.h>
 #else
-  #define _POSIX_C_SOURCE 200809L
+//  #define _POSIX_C_SOURCE 200809L
   #ifdef __APPLE__
     #define _DARWIN_UNLIMITED_SELECT
   #endif
@@ -182,32 +182,29 @@ socket_connect(const char *pHostName,
             printf("Error at WSAStartup()\n");
             break;
         }
-#else
-        if (!pdevice)
-        {
-            printf("pdevice is NULL!\n");
-            break;
-        }
 #endif
         if ((host = gethostbyname(pHostName)) == NULL)
         {
-            printf("%s gethostname:%s error\n", pdevice, pHostName);
+            printf("%s gethostname:%s error\n", pdevice ? pdevice : "", pHostName);
             break;
         }
 
         if ((fd = socket(AF_INET, (type == E_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM, 0)) == -1)
         {
-            printf("%s socket error\n", pdevice);
+            printf("%s socket error\n", pdevice ? pdevice : "");
             break;
         }
 #ifndef __WIN32
-        //绑定本地网卡
-        strncpy(sif.ifr_name, pdevice, sizeof(sif.ifr_name));
-        if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, &sif, sizeof(sif)) < 0)
+        if (pdevice)
         {
-            close(fd);
-            printf("%s setsockopt err:%s\n", pdevice, strerror(errno));
-            break;
+            //绑定本地网卡
+            strncpy(sif.ifr_name, pdevice, sizeof(sif.ifr_name));
+            if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, &sif, sizeof(sif)) < 0)
+            {
+                close(fd);
+                printf("%s setsockopt err:%s\n", pdevice, strerror(errno));
+                break;
+            }
         }
 #endif
 
@@ -261,6 +258,10 @@ socket_connect(const char *pHostName,
 
 #ifdef __WIN32
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&time_out, sizeof(int));
+        int on = 1;
+        setsockopt(fd, 6, TCP_NODELAY, &on, sizeof (on));
+        u_long mode = 1;
+        ioctlsocket((SOCKET)fd, FIONBIO, &mode);
 #else
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(struct timeval));
         setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(struct timeval));

@@ -647,6 +647,27 @@ app_frame_in_cb(void *p,
             &the_prun.terminal_tcp.node,
             &the_prun.terminal_udp.node};
 
+    if (the_prun.front_socket > 0)
+    {
+        sendlen = socket_send(the_prun.front_socket, pbuf, len);
+        if (sendlen < 0)
+        {
+            socket_close(the_prun.front_socket);
+            the_prun.front_socket = -1;
+        }
+        else if (sendlen == len)
+        {
+            if (the_prun.pcfg.front_timeout > 0)
+            {
+                socket_msleep(the_prun.pcfg.front_timeout / 1000);
+            }
+        }
+        else
+        {
+            //do nothing
+        }
+    }
+
     if ((the_prun.pcfg.ptcl_type != 4) && ptcl->pfn_get_dir(pbuf))    //0主站-->终端   1终端-->主站
     {
         return;
@@ -900,6 +921,78 @@ default_on_exit(void)
 
 /**
  ******************************************************************************
+ * @brief   前置通信线程
+ * @retval  None
+ ******************************************************************************
+ */
+static void
+front_thread(void *p)
+{
+    (void)p;
+    int socket;
+
+    while (1)
+    {
+        if (the_prun.front_socket == -1)
+        {
+            socket = socket_connect(the_prun.pcfg.front_ip, the_prun.pcfg.front_tcp_port, E_SOCKET_TCP, NULL);
+            if (socket > 0)
+            {
+                semTake(the_sem, 0);
+                the_prun.front_socket = socket;
+                semGive(the_sem);
+            }
+        }
+        socket_msleep(1000u * 10);
+    }
+}
+
+/**
+ ******************************************************************************
+ * @brief   前置数据接收
+ * @retval  None
+ ******************************************************************************
+ */
+static void
+front_recv(void)
+{
+    int len;
+    int sendlen;
+    connect_t *pct;
+    struct ListNode *piter;
+
+    if (the_prun.front_socket > 0)
+    {
+        len = socket_recv(the_prun.front_socket, the_rbuf, sizeof(the_rbuf));
+        if (len > 0)
+        {
+            LIST_FOR_EACH(piter, &the_prun.app_tcp.node)
+            {
+                pct = MemToObj(piter, connect_t, node);
+                /* 只要后台连接就上报，不管有没有记录MSA */
+                sendlen = socket_send(pct->socket, the_rbuf, len);
+                if (sendlen < 0)    //转发出错处理
+                {
+                    log_print(L_DEBUG, "前置转发APP失败!\n");
+                    piter = piter->pPrevNode;
+                    delete_pc(pct);
+                }
+            }
+        }
+        else if (len < 0)
+        {
+            socket_close(the_prun.front_socket);
+            the_prun.front_socket = -1;
+        }
+        else
+        {
+            //do nothing
+        }
+    }
+}
+
+/**
+ ******************************************************************************
  * @brief   打印版本信息
  * @return  None
  ******************************************************************************
@@ -910,6 +1003,11 @@ print_ver_info(void)
     log_print(L_ERROR, "*****************************************************\n");
     log_print(L_ERROR, "SanXing cFep [Version %s] Author : LiuNing\n", VERSION);
     log_print(L_ERROR, "协议类型       : %s\n", ptcl->pname);
+    if (the_prun.pcfg.support_front)
+    {
+        log_print(L_ERROR, "前置通信       : %s:%d%s\n", the_prun.pcfg.front_ip, the_prun.pcfg.front_tcp_port, the_prun.front_socket > 0 ? " OK": "");
+        log_print(L_ERROR, "前置超时       : %d(us)\n", the_prun.pcfg.front_timeout);
+    }
     log_print(L_ERROR, "后台TCP登录端口: %d\n", the_prun.pcfg.app_tcp_port);
     log_print(L_ERROR, "终端TCP登录端口: %d\n", the_prun.pcfg.terminal_tcp_port);
     log_print(L_ERROR, "终端UDP登录端口: %d\n", the_prun.pcfg.terminal_udp_port);
@@ -941,6 +1039,7 @@ int main(int argc, char **argv)
     InitListHead(&the_prun.app_tcp.node);
     InitListHead(&the_prun.terminal_tcp.node);
     InitListHead(&the_prun.terminal_udp.node);
+    the_prun.front_socket = -1;
 
     /* 2. 参数初始化 */
     if (ini_get_info(&the_prun.pcfg))
@@ -1028,8 +1127,16 @@ int main(int argc, char **argv)
     the_sem = semBCreate(0);
     (void)taskSpawn("USR_INPUT", 0, 1024, user_input_thread, 0);
 
+    if (the_prun.pcfg.support_front)
+    {
+        (void)taskSpawn("front", 0, 1024, front_thread, 0);
+    }
+
     while (1)
     {
+        /* 读取前置数据 */
+        front_recv();
+
         /* 检测后台端口 */
         tcp_accept(&the_prun.app_tcp);
 
