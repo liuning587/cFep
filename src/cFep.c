@@ -1178,7 +1178,7 @@ int main(int argc, char **argv)
         if (!(count & 0x03))
         {
             semGive(the_sem);
-            socket_msleep(1u);
+            socket_msleep(10u);
             semTake(the_sem, 0);
         }
         count++;
