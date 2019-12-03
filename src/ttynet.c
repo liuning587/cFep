@@ -160,9 +160,10 @@ ttynet_recv_client_cmd(ttynet_run_t *prun)
 {
     int len;
     client_t *pc;
+    struct ListNode *ptmp;
     struct ListNode *piter;
 
-    LIST_FOR_EACH(piter, &prun->client_list)
+    LIST_FOR_EACH_SAFE(piter, ptmp, &prun->client_list)
     {
         pc = MemToObj(piter, client_t, node);
 

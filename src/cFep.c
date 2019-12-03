@@ -23,7 +23,7 @@
 #include "taskLib.h"
 #include "ttynet.h"
 
-#define VERSION     "1.2.3"
+#define VERSION     "1.2.5"
 #define SOFTNAME    "cFep"
 
 static const ptcl_func_t *ptcl = NULL;
@@ -475,6 +475,7 @@ terminal_frame_in_cb(void *p,
     addr_t addr;
     int sendlen;
     connect_t *pct;
+    struct ListNode *ptmp;
     struct ListNode *piter;
     connect_t *pc = (connect_t *)p;
 
@@ -521,7 +522,7 @@ terminal_frame_in_cb(void *p,
                         &the_prun.terminal_udp.node};
                 for (i = 0; i < ARRAY_SIZE(node); i++)
                 {
-                    LIST_FOR_EACH(piter, node[i])
+                    LIST_FOR_EACH_SAFE(piter, ptmp, node[i])
                     {
                         pct = MemToObj(piter, connect_t, node);
                         if ((pct != pc) && (!ptcl->pfn_addr_cmp(&pct->u, pbuf)))
@@ -598,7 +599,7 @@ terminal_frame_in_cb(void *p,
     /* 获取msa */
     ptcl->pfn_msa_get(&msa, pbuf);
 
-    LIST_FOR_EACH(piter, &the_prun.app_tcp.node)
+    LIST_FOR_EACH_SAFE(piter, ptmp, &the_prun.app_tcp.node)
     {
         pct = MemToObj(piter, connect_t, node);
         /* 只要后台连接就上报，不管有没有记录MSA */
@@ -641,6 +642,7 @@ app_frame_in_cb(void *p,
     int sendlen;
     addr_t addr;
     connect_t *pct;
+    struct ListNode *ptmp;
     struct ListNode *piter;
     connect_t *pc = (connect_t *)p;
     struct ListNode *node[] = {
@@ -693,7 +695,7 @@ app_frame_in_cb(void *p,
 
     for (i = 0; i < ARRAY_SIZE(node); i++)
     {
-        LIST_FOR_EACH(piter, node[i])
+        LIST_FOR_EACH_SAFE(piter, ptmp, node[i])
         {
             pct = MemToObj(piter, connect_t, node);
             ptcl->pfn_addr_get(&addr, pbuf);
@@ -776,9 +778,10 @@ tcp_read(slist_t *pslist)
 {
     int len;
     connect_t *pc;
+    struct ListNode *ptmp;
     struct ListNode *piter;
 
-    LIST_FOR_EACH(piter, &pslist->node)
+    LIST_FOR_EACH_SAFE(piter, ptmp, &pslist->node)
     {
         pc = MemToObj(piter, connect_t, node);
 
@@ -866,10 +869,11 @@ static void
 daemo_task(slist_t *pslist)
 {
     connect_t *pc;
+    struct ListNode *ptmp;
     struct ListNode *piter;
     time_t cur_time = time(NULL);
 
-    LIST_FOR_EACH(piter, &pslist->node)
+    LIST_FOR_EACH_SAFE(piter, ptmp, &pslist->node)
     {
         pc = MemToObj(piter, connect_t, node);
 
@@ -896,6 +900,7 @@ default_on_exit(void)
 {
     int i;
     connect_t *pc;
+    struct ListNode *ptmp;
     struct ListNode *piter;
     struct ListNode *node[] = {
             &the_prun.app_tcp.node,
@@ -906,7 +911,7 @@ default_on_exit(void)
 
     for (i = 0; i < ARRAY_SIZE(node); i++)
     {
-        LIST_FOR_EACH(piter, node[i])
+        LIST_FOR_EACH_SAFE(piter, ptmp, node[i])
         {
             pc = MemToObj(piter, connect_t, node);
             piter = piter->pPrevNode;
@@ -959,6 +964,7 @@ front_recv(void)
     int len;
     int sendlen;
     connect_t *pct;
+    struct ListNode *ptmp;
     struct ListNode *piter;
 
     if (the_prun.front_socket > 0)
@@ -966,7 +972,7 @@ front_recv(void)
         len = socket_recv(the_prun.front_socket, the_rbuf, sizeof(the_rbuf));
         if (len > 0)
         {
-            LIST_FOR_EACH(piter, &the_prun.app_tcp.node)
+            LIST_FOR_EACH_SAFE(piter, ptmp, &the_prun.app_tcp.node)
             {
                 pct = MemToObj(piter, connect_t, node);
                 /* 只要后台连接就上报，不管有没有记录MSA */
