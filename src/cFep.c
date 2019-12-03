@@ -35,6 +35,7 @@ unsigned char the_rbuf[2048]; //全局缓存
 static void
 print_ver_info(void);
 
+#ifdef _WIN32
 static int
 default_on_exit(void);
 
@@ -42,6 +43,7 @@ extern int
 wupdate_start(const char *psoftname,
         const char *psoftver,
         const char *purlini);
+#endif
 
 /**
  ******************************************************************************
@@ -211,12 +213,14 @@ user_input_thread(void *p)
                     if (OK == semTake(the_sem, 100))
                     {
                         log_print(L_ERROR, "尝试升级。。。\n");
+                        #ifdef _WIN32
                         if (!wupdate_start("cFep",
                                 VERSION,
                                 "http://121.40.80.159/lnsoft/cFep/cFep.ini"))
                         {
                             printf("已经是最新版本!\n");
                         }
+                        #endif
                     }
                     semGive(the_sem);
                 }
@@ -889,6 +893,7 @@ daemo_task(slist_t *pslist)
     }
 }
 
+#ifdef _WIN32
 /**
  ******************************************************************************
  * @brief   默认退出处理方法
@@ -996,6 +1001,7 @@ front_recv(void)
         }
     }
 }
+#endif
 
 /**
  ******************************************************************************
@@ -1008,7 +1014,7 @@ print_ver_info(void)
 {
     log_print(L_ERROR, "*****************************************************\n");
     log_print(L_ERROR, "SanXing cFep [Version %s] Author : LiuNing\n", VERSION);
-    log_print(L_ERROR, "协议类型       : %s\n", ptcl->pname);
+    log_print(L_ERROR, "协议类型       : %s\n", ptcl ? ptcl->pname : "未知!");
     if (the_prun.pcfg.support_front)
     {
         log_print(L_ERROR, "前置通信       : %s:%d%s\n", the_prun.pcfg.front_ip, the_prun.pcfg.front_tcp_port, the_prun.front_socket > 0 ? " OK": "");
@@ -1129,19 +1135,22 @@ int main(int argc, char **argv)
     }
 
     print_ver_info();
-    _onexit(default_on_exit);  //注册默认退出函数
     the_sem = semBCreate(0);
+#ifdef _WIN32
+    _onexit(default_on_exit);  //注册默认退出函数
     (void)taskSpawn("USR_INPUT", 0, 1024, user_input_thread, 0);
-
     if (the_prun.pcfg.support_front)
     {
         (void)taskSpawn("front", 0, 1024, front_thread, 0);
     }
+#endif
 
     while (1)
     {
+#ifdef _WIN32
         /* 读取前置数据 */
         front_recv();
+#endif
 
         /* 检测后台端口 */
         tcp_accept(&the_prun.app_tcp);

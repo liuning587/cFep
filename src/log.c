@@ -49,12 +49,14 @@ int the_log_level = 0;
 /*-----------------------------------------------------------------------------
  Section: Function Definitions
  ----------------------------------------------------------------------------*/
+#ifdef _WIN32
 static int
-on_exit(void)
+on_log_exit(void)
 {
     log_exit();
     return 0;
 }
+#endif
 
 /**
  ******************************************************************************
@@ -83,6 +85,10 @@ log_check_file(time_t t)
     char fname[4+2+2+1+3+1];
     struct tm daytime;
 
+#ifndef _WIN32
+    int _timezone = 0;//fixbug
+#endif
+
     if ((int)((t - _timezone) / (1440 * 60)) != pre_day)
     {
         daytime = *localtime(&t);
@@ -109,7 +115,9 @@ int
 log_init(void)
 {
     log_check_file(time(NULL));
-    _onexit(on_exit);
+#ifdef _WIN32
+    _onexit(on_log_exit);
+#endif
     return 0;
 }
 
@@ -213,6 +221,7 @@ log_print(int level,
         const char *fmt, ...)
 {
     va_list args;
+    va_list args_;
 
     if (level <= the_log_level)
     {
@@ -220,7 +229,8 @@ log_print(int level,
         log_time();
         if (the_log_fp)
         {
-            (void)vfprintf(the_log_fp, fmt, args);
+            va_copy(args_, args);
+            (void)vfprintf(the_log_fp, fmt, args_);
             (void)fflush(the_log_fp);
         }
         (void)vfprintf(stdout, fmt, args);

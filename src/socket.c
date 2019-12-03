@@ -2,9 +2,7 @@
  ******************************************************************************
  * @file      socket.c
  * @brief     C Source file of socket.c.
- * @details   This file including all API functions's 
- *            implement of socket.c.	
- *
+ * @details   This file including all API functions's implement of socket.c.
  * @copyright 
  ******************************************************************************
  */
@@ -19,7 +17,7 @@
   #include <ws2tcpip.h>
   #include <windows.h>
 #else
-//  #define _POSIX_C_SOURCE 200809L
+  #define _POSIX_C_SOURCE 200809L
   #ifdef __APPLE__
     #define _DARWIN_UNLIMITED_SELECT
   #endif
@@ -160,6 +158,7 @@ socket_connect(const char *pHostName,
         const char *pdevice)
 {
 #ifdef __WIN32
+#ifdef __WIN32
     SOCKET fd;
     SOCKADDR_IN server_addr;
     WSADATA wsaData;
@@ -286,7 +285,7 @@ socket_connect(const char *pHostName,
 
         return (int)pnew_socket;
     } while(0);
-
+#endif
     return -1;
 }
 
@@ -461,7 +460,11 @@ socket_send(int socket,
     {
         struct sockaddr_in remote = {0};
         remote.sin_family = SOCK_DGRAM;
+#ifdef __WIN32
         remote.sin_addr.S_un.S_addr = pnew_socket->info.remote_ip;
+#else
+        remote.sin_addr.s_addr = pnew_socket->info.remote_ip;
+#endif
         remote.sin_port = pnew_socket->info.remote_port;
         len = sendto((SOCKET)pnew_socket->socket, (char *)pbuf, size, 0, (const struct sockaddr*)&remote, sizeof(remote));
     }
@@ -565,7 +568,11 @@ socket_recvfrom(int socket,
     if (len <= 0)
     {
         err = errno;
-        if (len == 0 || (!((err == EINTR || err == EWOULDBLOCK || err == EAGAIN || err == 10054)))) //WSAECONNRESET:10054
+        if (len == 0 || (!((err == EINTR || err == EWOULDBLOCK || err == EAGAIN
+#ifdef __WIN32
+                || err == 10054 //WSAECONNRESET:10054
+#endif
+                ))))
         {
             //printf("recvfrom len:%d err:%d\n", len, err);
             return -1;
@@ -577,7 +584,11 @@ socket_recvfrom(int socket,
         }
     }
 
+#ifdef __WIN32
     if (ip) *ip = (int)clt.sin_addr.S_un.S_addr;
+#else
+    if (ip) *ip = (int)clt.sin_addr.s_addr;
+#endif
     if (port) *port = clt.sin_port;
 
     return len;
