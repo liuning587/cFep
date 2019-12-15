@@ -31,7 +31,7 @@ all: cFep
 cFep: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MinGW C Linker'
-	gcc -static -L"G:\OpenSource\cFep\src" -Xlinker --gc-sections -o "cFep" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -Xlinker --gc-sections -o "cFep" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build

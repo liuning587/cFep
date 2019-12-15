@@ -86,7 +86,7 @@ log_check_file(time_t t)
     struct tm daytime;
 
 #ifndef _WIN32
-    int _timezone = 0;//fixbug
+    int _timezone = __timezone;//fixbug
 #endif
 
     if ((int)((t - _timezone) / (1440 * 60)) != pre_day)
