@@ -118,6 +118,15 @@ typedef struct
 /*-----------------------------------------------------------------------------
  Section: Function Definitions
  ----------------------------------------------------------------------------*/
+#ifndef __WIN32
+static void signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
+{
+    (void)ucontext;
+
+    printf("signo: %d, pid: %d\n", signo, siginfo->si_pid);
+}
+#endif
+
 /**
  ******************************************************************************
  * @brief   初始化socket模块
@@ -135,6 +144,18 @@ socket_init(void)
     {
         return -1;
     }
+#else
+    struct sigaction action;
+
+    action.sa_sigaction = signal_handler; //sa.sa_handler = SIG_IGN; 系统默认处理方法,就是不处理
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = SA_SIGINFO;
+    sigaction(SIGSYS, &action, NULL);
+
+    action.sa_sigaction = signal_handler; //sa.sa_handler = SIG_IGN; 系统默认处理方法,就是不处理
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = SA_SIGINFO;
+    sigaction(SIGPIPE, &action, NULL);
 #endif
     return 0;
 }
