@@ -168,11 +168,11 @@ socket_init(void)
  * @param[in]  type         : 0,tcp; 1,udp
  * @param[in]  *pdevice     : 网卡名
  *
- * @retval    -1: 初始化失败
- * @retval    >0: 初始化成功
+ * @retval  NULL : 初始化失败
+ * @retval !NULL : socketfd
  ******************************************************************************
  */
-int
+void *
 socket_connect(const char *pHostName,
         unsigned short port,
         char type,
@@ -301,13 +301,13 @@ socket_connect(const char *pHostName,
         else
         {
             close(fd);
-            return -1;
+            return NULL;
         }
 
-        return (int)pnew_socket;
+        return (void *)pnew_socket;
     } while(0);
 #endif
-    return -1;
+    return NULL;
 }
 
 /**
@@ -319,7 +319,7 @@ socket_connect(const char *pHostName,
  * @retval  listen fd
  ******************************************************************************
  */
-int
+void *
 socket_listen(unsigned short port,
         char type)
 {
@@ -330,14 +330,14 @@ socket_listen(unsigned short port,
 
     if (!port)
     {
-        return -1;
+        return NULL;
     }
 
     listen_fd = socket(AF_INET, (type == E_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM, 0);
     if (listen_fd == -1)
     {
         perror("socket");
-        return -1;
+        return NULL;
     }
 #ifdef _WIN32
     u_long mode = 1;
@@ -364,13 +364,13 @@ socket_listen(unsigned short port,
     {
         close(listen_fd);
         //perror("bind");
-        return -1;
+        return NULL;
     }
     if (setsockopt((SOCKET)listen_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&flag, len) == -1)
     {
         perror("setsockopt");
         close(listen_fd);
-        return -1;
+        return NULL;
     }
 //    else
 //    {
@@ -382,7 +382,7 @@ socket_listen(unsigned short port,
         {
             perror("listen");
             close(listen_fd);
-            return -1;
+            return NULL;
         }
     }
     if ((pnew_socket = malloc(sizeof(new_socket_t))))
@@ -393,29 +393,29 @@ socket_listen(unsigned short port,
     else
     {
         close(listen_fd);
-        return -1;
+        return NULL;
     }
 
-    return (int)pnew_socket;
+    return (void *)pnew_socket;
 }
 
 /**
  ******************************************************************************
  * @brief   socket accept
- * @param[in]  listen_fd : 监听
- * @retval     > 0
- * @retval     -1 无
+ * @param[in]  *listen_fd : 监听
+ * @retval  !NULL : socket句柄
+ * @retval  NULL  : 无
  ******************************************************************************
  */
-int
-socket_accept(int listen_fd)
+void *
+socket_accept(void *listen_fd)
 {
     int cfd;
     new_socket_t *pnew_socket = NULL;
     new_socket_t *pnew_listen = (new_socket_t *)listen_fd;
     if (!pnew_listen || (pnew_listen->type == E_SOCKET_ADDR))
     {
-        return -1;
+        return NULL;
     }
 
 #ifdef __WIN32
@@ -450,32 +450,32 @@ socket_accept(int listen_fd)
         else
         {
             close(cfd);
-            return -1;
+            return NULL;
         }
 
-        return (int)pnew_socket;
+        return (void *)pnew_socket;
     }
-    return -1;
+    return NULL;
 }
 
 /**
  ******************************************************************************
- * @brief      套接字发送数据
- * @param[in]  socket   : 套接字句柄
- * @param[in]  *pbuf    : 发送数据首地址
- * @param[in]  size     : 发送数据长度
+ * @brief   套接字发送数据
+ * @param[in]  *sockfd : 套接字句柄
+ * @param[in]  *pbuf   : 发送数据首地址
+ * @param[in]  size    : 发送数据长度
  *
- * @retval     -1   : 发送失败
- * @retval     size : 发送成功
+ * @retval  -1   : 发送失败
+ * @retval  size : 发送成功
  ******************************************************************************
  */
 int
-socket_send(int socket,
+socket_send(void *sockfd,
         const unsigned char *pbuf,
         int size)
 {
     int len;
-    new_socket_t *pnew_socket = (new_socket_t *)socket;
+    new_socket_t *pnew_socket = (new_socket_t *)sockfd;
 
     if (pnew_socket->type == E_SOCKET_ADDR)
     {
@@ -512,23 +512,23 @@ socket_send(int socket,
 
 /**
  ******************************************************************************
- * @brief      套接字接收数据
- * @param[in]  socket   : 套接字句柄
- * @param[in]  *pbuf    : 接收数据首地址
- * @param[in]  size     : 希望接收数据长度
+ * @brief   套接字接收数据
+ * @param[in]  *sockfd : 套接字句柄
+ * @param[in]  *pbuf   : 接收数据首地址
+ * @param[in]  size    : 希望接收数据长度
  *
- * @retval     -1   : 接收失败
- * @retval     size : 接收成功
+ * @retval  -1   : 接收失败
+ * @retval  size : 接收成功
  ******************************************************************************
  */
 int
-socket_recv(int socket,
+socket_recv(void *sockfd,
         unsigned char *pbuf,
         int size)
 {
     int err;
     int len;
-    new_socket_t *pnew_socket = (new_socket_t *)socket;
+    new_socket_t *pnew_socket = (new_socket_t *)sockfd;
 
 #if 0 //UDP也通过recv函数读取数据
     if (pnew_socket->type == E_SOCKET_ADDR)
@@ -557,19 +557,19 @@ socket_recv(int socket,
 
 /**
  ******************************************************************************
- * @brief      套接字接收数据
- * @param[in]  socket   : 套接字句柄
- * @param[in]  *pbuf    : 接收数据首地址
- * @param[in]  size     : 希望接收数据长度
- * @param[out] *ip      : 对方IP
- * @param[out] *port    : 对方端口
+ * @brief   套接字接收数据
+ * @param[in]  *sockfd : 套接字句柄
+ * @param[in]  *pbuf   : 接收数据首地址
+ * @param[in]  size    : 希望接收数据长度
+ * @param[out] *ip     : 对方IP
+ * @param[out] *port   : 对方端口
  *
- * @retval     -1   : 接收失败
- * @retval     size : 接收成功
+ * @retval  -1   : 接收失败
+ * @retval  size : 接收成功
  ******************************************************************************
  */
 int
-socket_recvfrom(int socket,
+socket_recvfrom(void *sockfd,
         unsigned char *pbuf,
         int size,
         int *ip,
@@ -578,7 +578,7 @@ socket_recvfrom(int socket,
     struct sockaddr_in clt;
     socklen_t l = sizeof(struct sockaddr_in);
     int err;
-    new_socket_t *pnew_socket = (new_socket_t *)socket;
+    new_socket_t *pnew_socket = (new_socket_t *)sockfd;
 
     if (pnew_socket->type == E_SOCKET_ADDR)
     {
@@ -618,15 +618,15 @@ socket_recvfrom(int socket,
 /**
  ******************************************************************************
  * @brief      套接字关闭
- * @param[in]  socket   : 套接字句柄
+ * @param[in]  *sockfd : socket句柄
  *
  * @return  None
  ******************************************************************************
  */
 void
-socket_close(int socket)
+socket_close(void *sockfd)
 {
-    new_socket_t *pnew_socket = (new_socket_t *)socket;
+    new_socket_t *pnew_socket = (new_socket_t *)sockfd;
 
 //    if (pnew_socket->type != E_SOCKET_ADDR) //UDP也需要关闭
     {
@@ -648,13 +648,14 @@ socket_close(int socket)
 /**
  ******************************************************************************
  * @brief   获取套接字ip,端口
- * @param[in]  None
- * @param[out] None
- * @retval     None
+ * @param[in]  *sockfd : socket句柄
+ *
+ * @retval  0 :
+ * @retval  1 :
  ******************************************************************************
  */
 int
-socket_get_ip_port(int sockfd)
+socket_get_ip_port(void *sockfd)
 {
     struct sockaddr_in sa;
     socklen_t len = sizeof(sa);
@@ -685,13 +686,13 @@ socket_get_ip_port(int sockfd)
 /**
  ******************************************************************************
  * @brief   获取套接字ip,端口字符串
- * @param[in]  None
- * @param[out] None
- * @retval     None
+ * @param[in]  *sockfd : socket句柄
+ *
+ * @retval  ip,端口字符串
  ******************************************************************************
  */
 const char *
-socket_get_ip_port_str(int sockfd)
+socket_get_ip_port_str(void *sockfd)
 {
     static char str[16+6];
     struct sockaddr_in sa;
@@ -723,13 +724,13 @@ socket_get_ip_port_str(int sockfd)
 /**
  ******************************************************************************
  * @brief   获取socket信息
- * @param[in]  sockfd : socket句柄
+ * @param[in]  *sockfd : socket句柄
  *
  * @retval  信息
  ******************************************************************************
  */
 const socket_info_t *
-socket_info_get(int sockfd)
+socket_info_get(void *sockfd)
 {
     new_socket_t *pnew_socket = (new_socket_t *)sockfd;
 
@@ -739,14 +740,15 @@ socket_info_get(int sockfd)
 /**
  ******************************************************************************
  * @brief   设置socket info(UDP，才能设置)
- * @param[in]  ip   :
- * @param[in]  port :
+ * @param[in]  *sockfd : socket句柄
+ * @param[in]  ip      :
+ * @param[in]  port    :
  *
  * @retval  socketfd
  ******************************************************************************
  */
-int
-socket_info_set(int socket,
+void *
+socket_info_set(void *sockfd,
         int ip,
         unsigned short port)
 {
@@ -755,25 +757,25 @@ socket_info_set(int socket,
     if ((pnew_socket = malloc(sizeof(new_socket_t))))
     {
         pnew_socket->type = E_SOCKET_ADDR;
-        pnew_socket->socket = ((new_socket_t *)socket)->socket;
+        pnew_socket->socket = ((new_socket_t *)sockfd)->socket;
         pnew_socket->info.remote_ip = ip;
         pnew_socket->info.remote_port = port;
     }
-    return (int)pnew_socket;
+    return (void *)pnew_socket;
 }
 
 /**
  ******************************************************************************
  * @brief   获取socket type
- * @param[in]  sockfd : socket句柄
+ * @param[in]  *sockfd : socket句柄
  *
  * @retval  socket type
  ******************************************************************************
  */
 int
-socket_type(int socketfd)
+socket_type(void *sockfd)
 {
-    new_socket_t *pnew_socket = (new_socket_t *)socketfd;
+    new_socket_t *pnew_socket = (new_socket_t *)sockfd;
 
     if (pnew_socket->type == E_SOCKET_ADDR)
     {

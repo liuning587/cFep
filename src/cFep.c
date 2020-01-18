@@ -653,13 +653,13 @@ app_frame_in_cb(void *p,
             &the_prun.terminal_tcp.node,
             &the_prun.terminal_udp.node};
 
-    if (the_prun.front_socket > 0)
+    if (the_prun.front_socket != NULL)
     {
         sendlen = socket_send(the_prun.front_socket, pbuf, len);
         if (sendlen < 0)
         {
             socket_close(the_prun.front_socket);
-            the_prun.front_socket = -1;
+            the_prun.front_socket = NULL;
         }
         else if (sendlen == len)
         {
@@ -735,9 +735,9 @@ app_frame_in_cb(void *p,
 static void
 tcp_accept(slist_t *pslist)
 {
-    int conn_fd;
+    void *conn_fd;
 
-    while ((conn_fd = socket_accept(pslist->listen)) != -1)
+    while ((conn_fd = socket_accept(pslist->listen)) != NULL)
     {
         //´´½¨·þÎñÆ÷¶Ë¿ÚÐÂµÄÁ¬½Ó
         connect_t *pc = malloc(sizeof(connect_t));
@@ -939,11 +939,11 @@ static void
 front_thread(void *p)
 {
     (void)p;
-    int socket;
+    void *socket;
 
     while (1)
     {
-        if (the_prun.front_socket == -1)
+        if (the_prun.front_socket == NULL)
         {
             socket = socket_connect(the_prun.pcfg.front_ip, the_prun.pcfg.front_tcp_port, E_SOCKET_TCP, NULL);
             if (socket > 0)
@@ -993,7 +993,7 @@ front_recv(void)
         else if (len < 0)
         {
             socket_close(the_prun.front_socket);
-            the_prun.front_socket = -1;
+            the_prun.front_socket = NULL;
         }
         else
         {
@@ -1051,7 +1051,7 @@ int main(int argc, char **argv)
     InitListHead(&the_prun.app_tcp.node);
     InitListHead(&the_prun.terminal_tcp.node);
     InitListHead(&the_prun.terminal_udp.node);
-    the_prun.front_socket = -1;
+    the_prun.front_socket = NULL;
 
     /* 2. ²ÎÊý³õÊ¼»¯ */
     if (ini_get_info(&the_prun.pcfg))
@@ -1110,7 +1110,7 @@ int main(int argc, char **argv)
     /* 4. Æô¶¯app¶Ë¿Ú¼àÌý */
     the_prun.app_tcp.type = E_TYPE_APP;
     the_prun.app_tcp.listen = socket_listen(the_prun.pcfg.app_tcp_port, E_SOCKET_TCP);
-    if (the_prun.app_tcp.listen == -1)
+    if (the_prun.app_tcp.listen == NULL)
     {
         fprintf(stderr, "¼àÌýºóÌ¨µÇÂ¼¶Ë¿Ú:%dÊ§°Ü!\n", the_prun.pcfg.app_tcp_port);
         goto __cFep_end;
@@ -1119,7 +1119,7 @@ int main(int argc, char **argv)
     /* 5. Æô¶¯terminal¶Ë¿Ú¼àÌý */
     the_prun.terminal_tcp.type = E_TYPE_TERMINAL;
     the_prun.terminal_tcp.listen = socket_listen(the_prun.pcfg.terminal_tcp_port, E_SOCKET_TCP);
-    if (the_prun.terminal_tcp.listen == -1)
+    if (the_prun.terminal_tcp.listen == NULL)
     {
         fprintf(stderr, "¼àÌýÖÕ¶ËµÇÂ¼¶Ë¿Ú:%dÊ§°Ü!\n", the_prun.pcfg.terminal_tcp_port);
         goto __cFep_end;
@@ -1128,7 +1128,7 @@ int main(int argc, char **argv)
     /* 6. Æô¶¯terminalµÄUDP¶Ë¿Ú¼àÌý */
     the_prun.terminal_udp.type = E_TYPE_TERMINAL;
     the_prun.terminal_udp.listen = socket_listen(the_prun.pcfg.terminal_udp_port, E_SOCKET_UDP);
-    if (the_prun.terminal_udp.listen == -1)
+    if (the_prun.terminal_udp.listen == NULL)
     {
         fprintf(stderr, "¼àÌýÖÕ¶ËµÇÂ¼UDP¶Ë¿Ú:%dÊ§°Ü!\n", the_prun.pcfg.terminal_udp_port);
         goto __cFep_end;

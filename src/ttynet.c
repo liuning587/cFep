@@ -27,7 +27,7 @@
 typedef struct
 {
     struct ListNode node;
-    int socket;             //socket连接句柄
+    void *socket;           //socket连接句柄
     time_t connect_time;    //连接时间
     time_t last_time;       //上一次通信时间
     int flag;               //标志: 是否需要发送设备列表
@@ -55,7 +55,7 @@ typedef struct
 
 typedef struct
 {
-    int listen;
+    void *listen;
     uint16_t telnet_port;
     struct ListNode dev_list;
     struct ListNode client_list;
@@ -125,9 +125,9 @@ delete_client(client_t *pc)
 static void
 ttynet_accept_client(ttynet_run_t *prun)
 {
-    int conn_fd;
+    void *conn_fd;
 
-    while ((conn_fd = socket_accept(prun->listen)) != -1)
+    while ((conn_fd = socket_accept(prun->listen)) != NULL)
     {
         //创建服务器端口新的连接
         client_t *pc = malloc(sizeof(client_t));
@@ -212,7 +212,7 @@ ttynet_init(uint16_t port)
     InitListHead(&the_ttynet.dev_list);
 
     the_ttynet.listen = socket_listen(the_ttynet.telnet_port, E_SOCKET_TCP);
-    if (the_ttynet.listen == -1)
+    if (the_ttynet.listen == NULL)
     {
         fprintf(stderr, "监听Telnet登录端口:%d失败!\n", the_ttynet.telnet_port);
         return ERROR;

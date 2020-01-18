@@ -53,58 +53,58 @@ typedef struct
 extern int
 socket_init(void);
 
-extern int
+extern void *
 socket_connect(const char *pHostName,
         unsigned short port,
         char type,
         const char *pdevice);
 
-extern int
+extern void *
 socket_listen(unsigned short port,
         char type);
 
-extern int
-socket_accept(int listen_fd);
+extern void *
+socket_accept(void *listen_fd);
 
 extern int
-socket_send(int socket,
+socket_send(void *sockfd,
         const unsigned char *pbuf,
         int size);
 
 extern int
-socket_recv(int socket,
+socket_recv(void *sockfd,
         unsigned char *pbuf,
         int size);
 
 extern int
-socket_recvfrom(int socket,
+socket_recvfrom(void *sockfd,
         unsigned char *pbuf,
         int size,
         int *ip,
         unsigned short *port);
 
 extern void
-socket_close(int socket);
+socket_close(void *sockfd);
 
 extern void
 socket_exit(void);
 
 extern const char *
-socket_get_ip_port_str(int sockfd);
+socket_get_ip_port_str(void *sockfd);
 
 extern const socket_info_t *
-socket_info_get(int sockfd);
+socket_info_get(void *sockfd);
 
-extern int
-socket_info_set(int socket,
+extern void *
+socket_info_set(void *sockfd,
         int ip,
         unsigned short port);
 
 extern int
-socket_type(int socketfd);
+socket_type(void *sockfd);
 
 extern void
 socket_msleep(int ms);
 
 #endif /* SOCKET_H_ */
-/*--------------------------End of socket.h-----------------------------*/
+/*----------------------------End of socket.h--------------------------------*/

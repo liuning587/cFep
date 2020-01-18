@@ -68,7 +68,7 @@ typedef struct
 typedef struct
 {
     struct ListNode node;
-    int listen;
+    void *listen;
     conn_type_e type;   //类别
 } slist_t;
 
@@ -80,14 +80,14 @@ typedef struct
     slist_t terminal_tcp;
     slist_t terminal_udp;
 
-    int front_socket;
+    void *front_socket;
 } prun_t;
 
 /** 连接结构 */
 typedef struct _connect_t
 {
     struct ListNode node;
-    int socket;             /**< socket连接句柄 */
+    void *socket;           /**< socket连接句柄 */
     //void *saddr;            /**< UDP连接时使用struct sockaddr_in */
     time_t connect_time;    /**< 连接时间 */
     time_t last_time;       /**< 上一次通信时间 */
