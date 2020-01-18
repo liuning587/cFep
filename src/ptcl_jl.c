@@ -498,7 +498,7 @@ static const char *
 jl_addr_str(const addr_t *paddr)
 {
     //9101-00000001
-    static char buf[10];
+    static char buf[16];
 
     snprintf(buf, sizeof(buf), "%02X%02X-%02X%02X%02X%02X",
             paddr->addr_c6[1], paddr->addr_c6[0],

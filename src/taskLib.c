@@ -135,9 +135,9 @@ semTake(SEM_ID semId, uint32_t timeout)
     {
         return ERROR;
     }
-    return OK;
 #else
 #endif
+    return OK;
 }
 
 /**
