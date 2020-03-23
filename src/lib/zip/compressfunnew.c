@@ -546,7 +546,7 @@ int Encode()  /* compression */
     EncodeEnd();
 	outbuffer.length = outcount;
 
-    /*Èç¹ûÃ»ÓÐÑ¹ËõÐ§¹ûÔò·µ»ØÔ­Êý¾ÝÁ÷*/
+    /*å¦‚æžœæ²¡æœ‰åŽ‹ç¼©æ•ˆæžœåˆ™è¿”å›žåŽŸæ•°æ®æµ*/
 	if (outcount >= inbuffer.length)
 	{
 		outbuffer.length = inbuffer.length;

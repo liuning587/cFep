@@ -54,7 +54,7 @@
  ----------------------------------------------------------------------------*/
 /**
  ******************************************************************************
- * @brief   ´´½¨Ä¬ÈÏÅäÖÃÎÄ¼ş
+ * @brief   åˆ›å»ºé»˜è®¤é…ç½®æ–‡ä»¶
  * @return  None
  ******************************************************************************
  */
@@ -65,42 +65,42 @@ create_example_ini_file(void)
 
     ini = fopen(DEFAULT_INI_FILE, "w");
     fprintf(ini,
-            "#cFepÅäÖÃBy LiuNing\n"
+            "#cFepé…ç½®By LiuNing\n"
             "[cfg]\n"
-            "#ÊÇ·ñÆôÓÃÇ°ÖÃÍ¨ĞÅ\n"
+            "#æ˜¯å¦å¯ç”¨å‰ç½®é€šä¿¡\n"
             "support_front          = 0\n\n"
-            "#Ç°ÖÃIP\n"
+            "#å‰ç½®IP\n"
             "front_ip               = 121.40.80.159\n\n"
-            "#Ç°ÖÃTCP¶Ë¿Ú\n"
+            "#å‰ç½®TCPç«¯å£\n"
             "front_tcp_port         = 20014\n\n"
-            "#Ç°ÖÃ³¬Ê±(µ¥Î»: us)\n"
+            "#å‰ç½®è¶…æ—¶(å•ä½: us)\n"
             "front_timeout          = 0\n\n"
-            "#ºóÌ¨TCP¶Ë¿Ú\n"
+            "#åå°TCPç«¯å£\n"
             "app_tcp_port           = 20014\n\n"
-            "#ÖÕ¶ËTCP¶Ë¿Ú\n"
+            "#ç»ˆç«¯TCPç«¯å£\n"
             "terminal_tcp_port      = 20013\n\n"
-            "#ÖÕ¶ËUDP¶Ë¿Ú\n"
+            "#ç»ˆç«¯UDPç«¯å£\n"
             "terminal_udp_port      = 20013\n\n"
-            "#TCPÁ¬½Ó³¬Ê±Ê±¼ä(µ¥Î»:·ÖÖÓ)\n"
+            "#TCPè¿æ¥è¶…æ—¶æ—¶é—´(å•ä½:åˆ†é’Ÿ)\n"
             "timeout                = 30\n\n"
-            "#Ğ­ÒéÀàĞÍ,0:¹úÍø 1:ÄÏÍø 2:¹ã¶«¡¢Õã½­¹æÔ¼ 3:¼ªÁÖ¹æÔ¼ 4:62056-47 5:698²âÊÔ\n"
+            "#åè®®ç±»å‹,0:å›½ç½‘ 1:å—ç½‘ 2:å¹¿ä¸œã€æµ™æ±Ÿè§„çº¦ 3:å‰æ—è§„çº¦ 4:62056-47 5:698æµ‹è¯•\n"
             "ptcl_type              = 0\n\n"
-            "#ÊÇ·ñÖ§³Ö¼ÓÃÜ(ÄÏÍøÊ¹ÓÃ)\n"
+            "#æ˜¯å¦æ”¯æŒåŠ å¯†(å—ç½‘ä½¿ç”¨)\n"
             "support_compress       = 0\n\n"
-            "#ÊÇ·ñ¼¶Áª(ÄÏÍøÊ¹ÓÃ)\n"
+            "#æ˜¯å¦çº§è”(å—ç½‘ä½¿ç”¨)\n"
             "support_cas            = 0\n\n"
-            "#ÊÇ·ñ¼¶ÁªÖÕ¶ËµÇÂ½¡¢ĞÄÌø(ÄÏÍøÊ¹ÓÃ)\n"
+            "#æ˜¯å¦çº§è”ç»ˆç«¯ç™»é™†ã€å¿ƒè·³(å—ç½‘ä½¿ç”¨)\n"
             "support_cas_link       = 0\n\n"
-            "#µ¥±¨ÎÄ×î´ó×Ö½ÚÊı(Í¨³£1k~2k)\n"
+            "#å•æŠ¥æ–‡æœ€å¤§å­—èŠ‚æ•°(é€šå¸¸1k~2k)\n"
             "max_frame_bytes        = 2048\n\n"
-            "#ÊÇ·ñÖ§³ÖÖÕ¶ËÖØ¸´µÇÂ½(Y/N)\n"
+            "#æ˜¯å¦æ”¯æŒç»ˆç«¯é‡å¤ç™»é™†(Y/N)\n"
             "support_comm_terminal  = N\n\n"
-            "#ÊÇ·ñÖ§³ÖÇ°ÖÃ»úÎ¬»¤ĞÄÌø(Y/N)\n"
+            "#æ˜¯å¦æ”¯æŒå‰ç½®æœºç»´æŠ¤å¿ƒè·³(Y/N)\n"
             "is_cfep_reply_heart    = Y\n\n"
-            "#Ä¬ÈÏµ÷ÊÔ¼¶±ğ\n"
-            "#  0 : ´òÓ¡ÖØÒªĞÅÏ¢\n"
-            "#  1 : ´òÓ¡ÖØÒªĞÅÏ¢ + ±¨ÎÄÈÕÖ¾\n"
-            "#  2 : ´òÓ¡ÖØÒªĞÅÏ¢ + ±¨ÎÄÈÕÖ¾ + µ÷ÊÔĞÅÏ¢\n"
+            "#é»˜è®¤è°ƒè¯•çº§åˆ«\n"
+            "#  0 : æ‰“å°é‡è¦ä¿¡æ¯\n"
+            "#  1 : æ‰“å°é‡è¦ä¿¡æ¯ + æŠ¥æ–‡æ—¥å¿—\n"
+            "#  2 : æ‰“å°é‡è¦ä¿¡æ¯ + æŠ¥æ–‡æ—¥å¿— + è°ƒè¯•ä¿¡æ¯\n"
             "default_debug_level    = 0\n"
             );
     fclose(ini);
@@ -108,11 +108,11 @@ create_example_ini_file(void)
 
 /**
  ******************************************************************************
- * @brief   ´ÓÅäÖÃÎÄ¼şÖĞ»ñÈ¡ÎÄ¼şºÏ²¢ĞÅÏ¢
- * @param[out] *pinfo   : ·µ»Øinfo
+ * @brief   ä»é…ç½®æ–‡ä»¶ä¸­è·å–æ–‡ä»¶åˆå¹¶ä¿¡æ¯
+ * @param[out] *pinfo   : è¿”å›info
  *
- * @retval     -1 Ê§°Ü
- * @retval      0 ³É¹¦
+ * @retval     -1 å¤±è´¥
+ * @retval      0 æˆåŠŸ
  ******************************************************************************
  */
 int
@@ -137,14 +137,14 @@ ini_get_info(pcfg_t *pinfo)
 
     iniparser_dump(ini, NULL);//stderr
 
-    //Ç°ÖÃÍ¨ĞÅ
+    //å‰ç½®é€šä¿¡
     pinfo->support_front = 0;
     vtmp = iniparser_getint(ini, "cfg:support_front", -1);
     if (vtmp > 0)
     {
         do
         {
-            //Ç°ÖÃIPµØÖ·
+            //å‰ç½®IPåœ°å€
             pstr = iniparser_getstring(ini, "cfg:front_ip", NULL);
             if (!pstr)
             {
@@ -152,17 +152,17 @@ ini_get_info(pcfg_t *pinfo)
             }
             strncpy(pinfo->front_ip, pstr, sizeof(pinfo->front_ip));
 
-            //Ç°ÖÃTCP¶Ë¿Ú
+            //å‰ç½®TCPç«¯å£
             vtmp = iniparser_getint(ini, "cfg:front_tcp_port", -1);
             if ((vtmp < 0) || (vtmp > 65535))
             {
-                fprintf(stderr, "Ç°ÖÃTCP¶Ë¿Ú[%d]·Ç·¨!\n", vtmp);
+                fprintf(stderr, "å‰ç½®TCPç«¯å£[%d]éæ³•!\n", vtmp);
                 pinfo->front_tcp_port = 0;
                 break;
             }
             pinfo->front_tcp_port = vtmp;
 
-            //Ç°ÖÃÍ¨ĞÅ³¬Ê±(µ¥Î»: us)
+            //å‰ç½®é€šä¿¡è¶…æ—¶(å•ä½: us)
             vtmp = iniparser_getint(ini, "cfg:front_timeout", -1);
             if (vtmp < 0)
             {
@@ -177,7 +177,7 @@ ini_get_info(pcfg_t *pinfo)
         } while (0);
     }
 
-    //ºóÌ¨TCP¶Ë¿Ú
+    //åå°TCPç«¯å£
     vtmp = iniparser_getint(ini, "cfg:app_tcp_port", -1);
     if (vtmp == -1)
     {
@@ -186,7 +186,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 65535))
     {
-        fprintf(stderr, "ºóÌ¨TCP¶Ë¿Ú[%d]·Ç·¨!\n", vtmp);
+        fprintf(stderr, "åå°TCPç«¯å£[%d]éæ³•!\n", vtmp);
         pinfo->app_tcp_port = 20014;
     }
     else
@@ -194,7 +194,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->app_tcp_port = vtmp;
     }
 
-    //ÖÕ¶ËTCP¶Ë¿Ú
+    //ç»ˆç«¯TCPç«¯å£
     vtmp = iniparser_getint(ini, "cfg:terminal_tcp_port", -1);
     if (vtmp == -1)
     {
@@ -203,7 +203,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 65535))
     {
-        fprintf(stderr, "ÖÕ¶ËTCP¶Ë¿Ú[%d]·Ç·¨!\n", vtmp);
+        fprintf(stderr, "ç»ˆç«¯TCPç«¯å£[%d]éæ³•!\n", vtmp);
         pinfo->terminal_tcp_port = 20013;
     }
     else
@@ -211,7 +211,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->terminal_tcp_port = vtmp;
     }
 
-    //ÖÕ¶ËUDP¶Ë¿Ú
+    //ç»ˆç«¯UDPç«¯å£
     vtmp = iniparser_getint(ini, "cfg:terminal_udp_port", -1);
     if (vtmp == -1)
     {
@@ -220,7 +220,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 65535))
     {
-        fprintf(stderr, "ÖÕ¶ËUDP¶Ë¿Ú[%d]·Ç·¨!\n", vtmp);
+        fprintf(stderr, "ç»ˆç«¯UDPç«¯å£[%d]éæ³•!\n", vtmp);
         pinfo->terminal_udp_port = 20013;
     }
     else
@@ -228,7 +228,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->terminal_udp_port = vtmp;
     }
 
-    //TCPÁ¬½Ó³¬Ê±Ê±¼ä(µ¥Î»:·ÖÖÓ)
+    //TCPè¿æ¥è¶…æ—¶æ—¶é—´(å•ä½:åˆ†é’Ÿ)
     vtmp = iniparser_getint(ini, "cfg:timeout", -1);
     if (vtmp == -1)
     {
@@ -237,7 +237,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 1440))
     {
-        fprintf(stderr, "TCPÁ¬½Ó³¬Ê±Ê±¼ä[%d]·Ç·¨!\n", vtmp);
+        fprintf(stderr, "TCPè¿æ¥è¶…æ—¶æ—¶é—´[%d]éæ³•!\n", vtmp);
         pinfo->timeout = 30;    //default 30 min
     }
     else
@@ -245,7 +245,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->timeout = vtmp;
     }
 
-    //Ğ­ÒéÀàĞÍ
+    //åè®®ç±»å‹
     vtmp = iniparser_getint(ini, "cfg:ptcl_type", -1);
     if (vtmp == -1)
     {
@@ -254,7 +254,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 5))
     {
-        fprintf(stderr, "Ğ­ÒéÀàĞÍ[%d]·Ç·¨!²ÉÓÃÄ¬ÈÏÖµ0\n", vtmp);
+        fprintf(stderr, "åè®®ç±»å‹[%d]éæ³•!é‡‡ç”¨é»˜è®¤å€¼0\n", vtmp);
         pinfo->ptcl_type = 0;
     }
     else
@@ -262,7 +262,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->ptcl_type = vtmp;
     }
 
-    //ÊÇ·ñ¼ÓÃÜ
+    //æ˜¯å¦åŠ å¯†
     vtmp = iniparser_getint(ini, "cfg:support_compress", -1);
     if (vtmp == -1)
     {
@@ -271,7 +271,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 1))
     {
-        fprintf(stderr, "ÊÇ·ñ¼ÓÃÜ[%d]·Ç·¨!²ÉÓÃÄ¬ÈÏÖµ0\n", vtmp);
+        fprintf(stderr, "æ˜¯å¦åŠ å¯†[%d]éæ³•!é‡‡ç”¨é»˜è®¤å€¼0\n", vtmp);
         pinfo->support_compress = 0;
     }
     else
@@ -279,7 +279,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->support_compress = (pinfo->ptcl_type == 1) ? vtmp : 0;
     }
 
-    //ÊÇ·ñÖ§³Ö¼¶Áª
+    //æ˜¯å¦æ”¯æŒçº§è”
     vtmp = iniparser_getint(ini, "cfg:support_cas", -1);
     if (vtmp == -1)
     {
@@ -288,7 +288,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 1))
     {
-        fprintf(stderr, "ÊÇ·ñ¼ÓÃÜ[%d]·Ç·¨!²ÉÓÃÄ¬ÈÏÖµ0\n", vtmp);
+        fprintf(stderr, "æ˜¯å¦åŠ å¯†[%d]éæ³•!é‡‡ç”¨é»˜è®¤å€¼0\n", vtmp);
         pinfo->support_cas = 0;
     }
     else
@@ -296,7 +296,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->support_cas = (pinfo->ptcl_type == 1) ? vtmp : 0;
     }
 
-    //ÊÇ·ñÖ§³Ö¼¶ÁªÖÕ¶ËµÇÂ½¡¢ĞÄÌø
+    //æ˜¯å¦æ”¯æŒçº§è”ç»ˆç«¯ç™»é™†ã€å¿ƒè·³
     vtmp = iniparser_getint(ini, "cfg:support_cas_link", -1);
     if (vtmp == -1)
     {
@@ -305,7 +305,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 1))
     {
-        fprintf(stderr, "ÊÇ·ñ¼ÓÃÜ[%d]·Ç·¨!²ÉÓÃÄ¬ÈÏÖµ0\n", vtmp);
+        fprintf(stderr, "æ˜¯å¦åŠ å¯†[%d]éæ³•!é‡‡ç”¨é»˜è®¤å€¼0\n", vtmp);
         pinfo->support_cas_link = 0;
     }
     else
@@ -313,7 +313,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->support_cas_link = (pinfo->ptcl_type == 1) ? vtmp : 0;
     }
 
-    //µ¥±¨ÎÄ×î´ó×Ö½ÚÊı
+    //å•æŠ¥æ–‡æœ€å¤§å­—èŠ‚æ•°
     vtmp = iniparser_getint(ini, "cfg:max_frame_bytes", -1);
     if (vtmp == -1)
     {
@@ -322,7 +322,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 512) || (vtmp > 8192))
     {
-        fprintf(stderr, "µ¥±¨ÎÄ×î´ó×Ö½ÚÊı[%d]·Ç·¨!\n", vtmp);
+        fprintf(stderr, "å•æŠ¥æ–‡æœ€å¤§å­—èŠ‚æ•°[%d]éæ³•!\n", vtmp);
         pinfo->max_frame_bytes = 2048;
     }
     else
@@ -330,7 +330,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->max_frame_bytes = vtmp;
     }
 
-    //ÔÊĞíÖÕ¶ËÖØ¸´ÉÏÏß
+    //å…è®¸ç»ˆç«¯é‡å¤ä¸Šçº¿
     vtmp = iniparser_getboolean(ini, "cfg:support_comm_terminal", -1);
     if (vtmp == -1)
     {
@@ -339,7 +339,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 1))
     {
-        fprintf(stderr, "ÔÊĞíÖÕ¶ËÖØ¸´ÉÏÏß[%d]·Ç·¨!\n", vtmp);
+        fprintf(stderr, "å…è®¸ç»ˆç«¯é‡å¤ä¸Šçº¿[%d]éæ³•!\n", vtmp);
         pinfo->support_comm_terminal = 1;
     }
     else
@@ -347,7 +347,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->support_comm_terminal = vtmp;
     }
 
-    //ÔÊĞíÇ°ÖÃ»úÎ¬»¤ĞÄÌøÃüÁî
+    //å…è®¸å‰ç½®æœºç»´æŠ¤å¿ƒè·³å‘½ä»¤
     vtmp = iniparser_getboolean(ini, "cfg:is_cfep_reply_heart", -1);
     if (vtmp == -1)
     {
@@ -356,7 +356,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 1))
     {
-        fprintf(stderr, "ÔÊĞíÇ°ÖÃ»úÎ¬»¤ĞÄÌøÃüÁî[%d]·Ç·¨!\n", vtmp);
+        fprintf(stderr, "å…è®¸å‰ç½®æœºç»´æŠ¤å¿ƒè·³å‘½ä»¤[%d]éæ³•!\n", vtmp);
         pinfo->is_cfep_reply_heart = 1;
     }
     else
@@ -364,7 +364,7 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->is_cfep_reply_heart = vtmp;
     }
 
-    //Ä¬ÈÏµ÷ÊÔ¼¶±ğ
+    //é»˜è®¤è°ƒè¯•çº§åˆ«
     vtmp = iniparser_getint(ini, "cfg:default_debug_level", -1);
     if (vtmp == -1)
     {
@@ -373,7 +373,7 @@ ini_get_info(pcfg_t *pinfo)
     }
     if ((vtmp < 0) || (vtmp > 2))
     {
-        fprintf(stderr, "Ä¬ÈÏµ÷ÊÔ¼¶±ğ[%d]·Ç·¨!\n", vtmp);
+        fprintf(stderr, "é»˜è®¤è°ƒè¯•çº§åˆ«[%d]éæ³•!\n", vtmp);
         pinfo->default_debug_level = 0;
     }
     else

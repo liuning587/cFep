@@ -25,12 +25,12 @@
  ----------------------------------------------------------------------------*/
 typedef enum
 {
-    E_PTCL_GW,  /**< ¹úÍø2013¹æÔ¼ */
-    E_PTCL_NW,   /**< ÄÏÍøĞÂ¹æÔ¼ */
+    E_PTCL_GW,  /**< å›½ç½‘2013è§„çº¦ */
+    E_PTCL_NW,   /**< å—ç½‘æ–°è§„çº¦ */
     E_PTCL_END,
 } ptcl_type_e;
 
-/** ±¨ÎÄÀàĞÍ */
+/** æŠ¥æ–‡ç±»å‹ */
 typedef enum FUNCTYPE
 {
     LINK_LOGIN = 0,
@@ -43,11 +43,11 @@ typedef enum FUNCTYPE
 
 #pragma pack(push, 1)
 
-/** Ö÷Õ¾¡¢ÖÕ¶ËÍ¨ÓÃµØÖ·½á¹¹6×Ö½Ú */
+/** ä¸»ç«™ã€ç»ˆç«¯é€šç”¨åœ°å€ç»“æ„6å­—èŠ‚ */
 typedef union
 {
     int msa;
-    int addr;                   /**< ÖÕ¶ËµØÖ· */
+    int addr;                   /**< ç»ˆç«¯åœ°å€ */
     unsigned char addr_c4[4];
     unsigned char addr_c6[6];
     unsigned char addr_c16[16];
@@ -56,87 +56,87 @@ typedef union
 typedef struct
 {
     void (*pfn_frame_in)(void*, const unsigned char*, int);
-    unsigned char frame_state;  /* ±¨ÎÄ×´Ì¬ */
-    time_t update_time;         /* ¸üĞÂÊ±¼ä */
-    unsigned char overtime;     /* ±¨ÎÄµÈ´ı³¬Ê±Ê±¼ä */
-    unsigned int dlen;          /* ÓÃ»§Êı¾İ³¤¶È,½âÎö×Ô±¨ÎÄ³¤¶ÈÓò */
-    unsigned int cfm_len;       /* ÓÃ»§Êı¾İÈ·ÈÏ³¤¶È£¬ÓÃÓÚ½âÎöÊı¾İ³¤¶ÈÁÙÊ±ÓÃ */
+    unsigned char frame_state;  /* æŠ¥æ–‡çŠ¶æ€ */
+    time_t update_time;         /* æ›´æ–°æ—¶é—´ */
+    unsigned char overtime;     /* æŠ¥æ–‡ç­‰å¾…è¶…æ—¶æ—¶é—´ */
+    unsigned int dlen;          /* ç”¨æˆ·æ•°æ®é•¿åº¦,è§£æè‡ªæŠ¥æ–‡é•¿åº¦åŸŸ */
+    unsigned int cfm_len;       /* ç”¨æˆ·æ•°æ®ç¡®è®¤é•¿åº¦ï¼Œç”¨äºè§£ææ•°æ®é•¿åº¦ä¸´æ—¶ç”¨ */
 
-    unsigned char *pbuf;        /* ±¨ÎÄ³Ø */
-    unsigned int pbuf_pos;      /* ±¨ÎÄ½ÓÊÕ×Ö½ÚÆ«ÒÆÎ»ÖÃ */
-    unsigned char cs;           /* Ğ£ÑéºÍ */
+    unsigned char *pbuf;        /* æŠ¥æ–‡æ±  */
+    unsigned int pbuf_pos;      /* æŠ¥æ–‡æ¥æ”¶å­—èŠ‚åç§»ä½ç½® */
+    unsigned char cs;           /* æ ¡éªŒå’Œ */
 } chkfrm_t;
 
-/** Ğ­Òé´¦Àí½Ó¿Ú */
+/** åè®®å¤„ç†æ¥å£ */
 typedef struct
 {
-    const char *pname; /**< Ğ­ÒéÃû³Æ */
+    const char *pname; /**< åè®®åç§° */
 
-    char support_app_heart; /**< ÊÇ·ñÖ§³ÖºóÌ¨Èí¼şµÇÂ½¡¢ĞÄÌø */
+    char support_app_heart; /**< æ˜¯å¦æ”¯æŒåå°è½¯ä»¶ç™»é™†ã€å¿ƒè·³ */
 
     /**
-     * ±¨ÎÄ¼ì²â³õÊ¼»¯
+     * æŠ¥æ–‡æ£€æµ‹åˆå§‹åŒ–
      */
     void (*pfn_chkfrm_init)(chkfrm_t *,
             void (*pfn_frame_in)(void*, const unsigned char*, int));
 
     /**
-     * ±¨ÎÄ¼ì²â
+     * æŠ¥æ–‡æ£€æµ‹
      */
     void (*pfn_chfrm)(void*, chkfrm_t*, const unsigned char*, int);
 
     /**
-     *  »ñÈ¡±¨ÎÄ´«Êä·½Ïò,0:Ö÷Õ¾-->ÖÕ¶Ë, 1:ÖÕ¶Ë-->Ö÷Õ¾
+     *  è·å–æŠ¥æ–‡ä¼ è¾“æ–¹å‘,0:ä¸»ç«™-->ç»ˆç«¯, 1:ç»ˆç«¯-->ä¸»ç«™
      */
     int (*pfn_get_dir)(const unsigned char*);
 
     /**
-     * »ñÈ¡±¨ÎÄÀàĞÍ
+     * è·å–æŠ¥æ–‡ç±»å‹
      */
     func_type_e (*pfn_frame_type)(const unsigned char*);
 
     /**
-     * ´ò°üµÇÂ½¡¢ĞÄÌø»Ø¸´°ü
+     * æ‰“åŒ…ç™»é™†ã€å¿ƒè·³å›å¤åŒ…
      */
     int (*pfn_build_reply_packet)(const unsigned char*, unsigned char*);
 
     /**
-     * ÖÕ¶ËµØÖ·±È½Ï
+     * ç»ˆç«¯åœ°å€æ¯”è¾ƒ
      */
     int (*pfn_addr_cmp)(const addr_t*, const unsigned char*);
 
     /**
-     * ´Ó±¨ÎÄÖĞÈ¡³öÖÕ¶ËµØÖ·
+     * ä»æŠ¥æ–‡ä¸­å–å‡ºç»ˆç«¯åœ°å€
      */
     void (*pfn_addr_get)(addr_t*, const unsigned char*);
 
     /**
-     * »ñÈ¡ÖÕ¶Ë×Ö·û´®
+     * è·å–ç»ˆç«¯å­—ç¬¦ä¸²
      */
     const char* (*pfn_addr_str)(const addr_t*);
 
     /**
-     * Ö÷Õ¾MSAµØÖ·±È½Ï
+     * ä¸»ç«™MSAåœ°å€æ¯”è¾ƒ
      */
     int (*pfn_msa_cmp)(const addr_t*, const unsigned char*);
 
     /**
-     * ´Ó±¨ÎÄÖĞÈ¡³öÖ÷Õ¾MSAµØÖ·
+     * ä»æŠ¥æ–‡ä¸­å–å‡ºä¸»ç«™MSAåœ°å€
      */
     void (*pfn_msa_get)(addr_t*, const unsigned char*);
 
     /**
-     * ÅĞ¶ÏÖ÷Õ¾·¢³öµÄmsaÊÇ·ñÓĞĞ§
+     * åˆ¤æ–­ä¸»ç«™å‘å‡ºçš„msaæ˜¯å¦æœ‰æ•ˆ
      */
     int (*pfn_is_msa_valid)(const addr_t*);
 
     /**
-     * »ñÈ¡Ö÷Õ¾·¢³ö²éÑ¯ÊÇ·ñÔÚÏßÖÕ¶ËµØÖ·
+     * è·å–ä¸»ç«™å‘å‡ºæŸ¥è¯¢æ˜¯å¦åœ¨çº¿ç»ˆç«¯åœ°å€
      */
     int (*pfn_get_oline_addr)(addr_t*, const unsigned char *);
 
     /**
-     * ´´½¨²éÑ¯online»Ø¸´±¨ÎÄ
+     * åˆ›å»ºæŸ¥è¯¢onlineå›å¤æŠ¥æ–‡
      */
     int (*pfn_build_online_packet)(const unsigned char*, unsigned char*, int);
 } ptcl_func_t;

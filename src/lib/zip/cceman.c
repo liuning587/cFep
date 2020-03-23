@@ -76,7 +76,7 @@ int DeData(BYTE * DataBuf, int DataLen)
 #if ZIP_SHA_ENABLE
 	if((DataBuf[1] & EXE_SHA) == EXE_SHA)
 	{
-		if((result = CheckHash (&temp))==-2)			//Ð£ÑéÉ¢ÁÐÖµ
+		if((result = CheckHash (&temp))==-2)			//æ ¡éªŒæ•£åˆ—å€¼
 			return result;
 	}
 #endif
@@ -112,7 +112,7 @@ int EnData(BYTE * DataBuf, int DataLen, unsigned char Oper)
 #if ZIP_SHA_ENABLE
 	if((Oper & EXE_SHA) == EXE_SHA)
 	{
-		if((result = SHA_64(&temp))==-2)			//¼ÆËãÉ¢ÁÐÖµ
+		if((result = SHA_64(&temp))==-2)			//è®¡ç®—æ•£åˆ—å€¼
 			return result;
 	}
 #endif
@@ -133,10 +133,10 @@ int CEExpand(DATA * temp)
 {
 	int i;
 	
-	if((i = ExpendRAY (temp))==-2)  //RAY½âÑ¹
+	if((i = ExpendRAY (temp))==-2)  //RAYè§£åŽ‹
 		return i;
 	
-	if((i = ExpendPeriod (temp))==-2) //ÖÜÆÚ½âÑ¹
+	if((i = ExpendPeriod (temp))==-2) //å‘¨æœŸè§£åŽ‹
 		return i;
 	
 	return 0;
@@ -147,10 +147,10 @@ int CECompress(DATA * temp)
 {
 	int i;
 	
-	if((i = PeriodCompression (temp))==-2) //ÖÜÆÚÑ¹Ëõ
+	if((i = PeriodCompression (temp))==-2) //å‘¨æœŸåŽ‹ç¼©
 		return i;
 	
-	if((i = RAYCompression (temp))==-2)  //RAYÑ¹Ëõ
+	if((i = RAYCompression (temp))==-2)  //RAYåŽ‹ç¼©
 		return i;
 	
 	return 0;	

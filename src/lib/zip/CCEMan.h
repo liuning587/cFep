@@ -7,9 +7,9 @@
 	
 #define MAXSBUFLEN 4096
 
-#define EXE_COMPRESS_NEW	0x01//ĞÂµÄÑ¹Ëõ 
-#define EXE_SHA			0x02//ÍêÕûĞÔÑéÖ¤ 
-#define EXE_ENCRYPT		0x04//¼ÓÃÜ
+#define EXE_COMPRESS_NEW	0x01//æ–°çš„å‹ç¼© 
+#define EXE_SHA			0x02//å®Œæ•´æ€§éªŒè¯ 
+#define EXE_ENCRYPT		0x04//åŠ å¯†
 
 #include "CrypFun.h"
 #include "CompressFun.h"

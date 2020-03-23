@@ -129,9 +129,9 @@ static void signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
 
 /**
  ******************************************************************************
- * @brief   ³õÊ¼»¯socketÄ£¿é
- * @retval   0  : ³õÊ¼»¯³É¹¦
- * @retval  -1  : ³õÊ¼»¯Ê§°Ü
+ * @brief   åˆå§‹åŒ–socketæ¨¡å—
+ * @retval   0  : åˆå§‹åŒ–æˆåŠŸ
+ * @retval  -1  : åˆå§‹åŒ–å¤±è´¥
  ******************************************************************************
  */
 int
@@ -147,12 +147,12 @@ socket_init(void)
 #else
     struct sigaction action;
 
-    action.sa_sigaction = signal_handler; //sa.sa_handler = SIG_IGN; ÏµÍ³Ä¬ÈÏ´¦Àí·½·¨,¾ÍÊÇ²»´¦Àí
+    action.sa_sigaction = signal_handler; //sa.sa_handler = SIG_IGN; ç³»ç»Ÿé»˜è®¤å¤„ç†æ–¹æ³•,å°±æ˜¯ä¸å¤„ç†
     sigemptyset(&action.sa_mask);
     action.sa_flags = SA_SIGINFO;
     sigaction(SIGSYS, &action, NULL);
 
-    action.sa_sigaction = signal_handler; //sa.sa_handler = SIG_IGN; ÏµÍ³Ä¬ÈÏ´¦Àí·½·¨,¾ÍÊÇ²»´¦Àí
+    action.sa_sigaction = signal_handler; //sa.sa_handler = SIG_IGN; ç³»ç»Ÿé»˜è®¤å¤„ç†æ–¹æ³•,å°±æ˜¯ä¸å¤„ç†
     sigemptyset(&action.sa_mask);
     action.sa_flags = SA_SIGINFO;
     sigaction(SIGPIPE, &action, NULL);
@@ -162,13 +162,13 @@ socket_init(void)
 
 /**
  ******************************************************************************
- * @brief      Ì×½Ó×Ö³õÊ¼»¯
- * @param[in]  *pHostName   : Ö÷»úÃû
- * @param[in]  port         : ¶Ë¿ÚºÅ
+ * @brief      å¥—æ¥å­—åˆå§‹åŒ–
+ * @param[in]  *pHostName   : ä¸»æœºå
+ * @param[in]  port         : ç«¯å£å·
  * @param[in]  type         : 0,tcp; 1,udp
- * @param[in]  *pdevice     : Íø¿¨Ãû
+ * @param[in]  *pdevice     : ç½‘å¡å
  *
- * @retval  NULL : ³õÊ¼»¯Ê§°Ü
+ * @retval  NULL : åˆå§‹åŒ–å¤±è´¥
  * @retval !NULL : socketfd
  ******************************************************************************
  */
@@ -183,7 +183,7 @@ socket_connect(const char *pHostName,
     SOCKET fd;
     SOCKADDR_IN server_addr;
     WSADATA wsaData;
-    int time_out = 1000 * 15; //³¬Ê±15s
+    int time_out = 1000 * 15; //è¶…æ—¶15s
 #else
     int fd = -1;
     struct sockaddr_in server_addr;
@@ -217,7 +217,7 @@ socket_connect(const char *pHostName,
 #ifndef __WIN32
         if (pdevice)
         {
-            //°ó¶¨±¾µØÍø¿¨
+            //ç»‘å®šæœ¬åœ°ç½‘å¡
             strncpy(sif.ifr_name, pdevice, sizeof(sif.ifr_name));
             if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, &sif, sizeof(sif)) < 0)
             {
@@ -236,7 +236,7 @@ socket_connect(const char *pHostName,
         //printf("%s try connect %s:%d...\n", pdevice, pHostName, port);
         if (type != E_SOCKET_UDP)
         {
-#if 0   //³¬Ê±Á¬½Ó
+#if 0   //è¶…æ—¶è¿æ¥
             fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
             if (!connect(fd, (struct sockaddr *)(&server_addr), sizeof(struct sockaddr)))
             {
@@ -312,8 +312,8 @@ socket_connect(const char *pHostName,
 
 /**
  ******************************************************************************
- * @brief   socket¼àÌı
- * @param[in]  port : ¼àÌı¶Ë¿ÚºÅ
+ * @brief   socketç›‘å¬
+ * @param[in]  port : ç›‘å¬ç«¯å£å·
  * @param[in]  type : 0,tcp; 1,udp
  *
  * @retval  listen fd
@@ -402,9 +402,9 @@ socket_listen(unsigned short port,
 /**
  ******************************************************************************
  * @brief   socket accept
- * @param[in]  *listen_fd : ¼àÌı
- * @retval  !NULL : socket¾ä±ú
- * @retval  NULL  : ÎŞ
+ * @param[in]  *listen_fd : ç›‘å¬
+ * @retval  !NULL : socketå¥æŸ„
+ * @retval  NULL  : æ— 
  ******************************************************************************
  */
 void *
@@ -460,13 +460,13 @@ socket_accept(void *listen_fd)
 
 /**
  ******************************************************************************
- * @brief   Ì×½Ó×Ö·¢ËÍÊı¾İ
- * @param[in]  *sockfd : Ì×½Ó×Ö¾ä±ú
- * @param[in]  *pbuf   : ·¢ËÍÊı¾İÊ×µØÖ·
- * @param[in]  size    : ·¢ËÍÊı¾İ³¤¶È
+ * @brief   å¥—æ¥å­—å‘é€æ•°æ®
+ * @param[in]  *sockfd : å¥—æ¥å­—å¥æŸ„
+ * @param[in]  *pbuf   : å‘é€æ•°æ®é¦–åœ°å€
+ * @param[in]  size    : å‘é€æ•°æ®é•¿åº¦
  *
- * @retval  -1   : ·¢ËÍÊ§°Ü
- * @retval  size : ·¢ËÍ³É¹¦
+ * @retval  -1   : å‘é€å¤±è´¥
+ * @retval  size : å‘é€æˆåŠŸ
  ******************************************************************************
  */
 int
@@ -512,13 +512,13 @@ socket_send(void *sockfd,
 
 /**
  ******************************************************************************
- * @brief   Ì×½Ó×Ö½ÓÊÕÊı¾İ
- * @param[in]  *sockfd : Ì×½Ó×Ö¾ä±ú
- * @param[in]  *pbuf   : ½ÓÊÕÊı¾İÊ×µØÖ·
- * @param[in]  size    : Ï£Íû½ÓÊÕÊı¾İ³¤¶È
+ * @brief   å¥—æ¥å­—æ¥æ”¶æ•°æ®
+ * @param[in]  *sockfd : å¥—æ¥å­—å¥æŸ„
+ * @param[in]  *pbuf   : æ¥æ”¶æ•°æ®é¦–åœ°å€
+ * @param[in]  size    : å¸Œæœ›æ¥æ”¶æ•°æ®é•¿åº¦
  *
- * @retval  -1   : ½ÓÊÕÊ§°Ü
- * @retval  size : ½ÓÊÕ³É¹¦
+ * @retval  -1   : æ¥æ”¶å¤±è´¥
+ * @retval  size : æ¥æ”¶æˆåŠŸ
  ******************************************************************************
  */
 int
@@ -530,7 +530,7 @@ socket_recv(void *sockfd,
     int len;
     new_socket_t *pnew_socket = (new_socket_t *)sockfd;
 
-#if 0 //UDPÒ²Í¨¹ırecvº¯Êı¶ÁÈ¡Êı¾İ
+#if 0 //UDPä¹Ÿé€šè¿‡recvå‡½æ•°è¯»å–æ•°æ®
     if (pnew_socket->type == E_SOCKET_ADDR)
     {
         return 0;
@@ -557,15 +557,15 @@ socket_recv(void *sockfd,
 
 /**
  ******************************************************************************
- * @brief   Ì×½Ó×Ö½ÓÊÕÊı¾İ
- * @param[in]  *sockfd : Ì×½Ó×Ö¾ä±ú
- * @param[in]  *pbuf   : ½ÓÊÕÊı¾İÊ×µØÖ·
- * @param[in]  size    : Ï£Íû½ÓÊÕÊı¾İ³¤¶È
- * @param[out] *ip     : ¶Ô·½IP
- * @param[out] *port   : ¶Ô·½¶Ë¿Ú
+ * @brief   å¥—æ¥å­—æ¥æ”¶æ•°æ®
+ * @param[in]  *sockfd : å¥—æ¥å­—å¥æŸ„
+ * @param[in]  *pbuf   : æ¥æ”¶æ•°æ®é¦–åœ°å€
+ * @param[in]  size    : å¸Œæœ›æ¥æ”¶æ•°æ®é•¿åº¦
+ * @param[out] *ip     : å¯¹æ–¹IP
+ * @param[out] *port   : å¯¹æ–¹ç«¯å£
  *
- * @retval  -1   : ½ÓÊÕÊ§°Ü
- * @retval  size : ½ÓÊÕ³É¹¦
+ * @retval  -1   : æ¥æ”¶å¤±è´¥
+ * @retval  size : æ¥æ”¶æˆåŠŸ
  ******************************************************************************
  */
 int
@@ -617,8 +617,8 @@ socket_recvfrom(void *sockfd,
 
 /**
  ******************************************************************************
- * @brief      Ì×½Ó×Ö¹Ø±Õ
- * @param[in]  *sockfd : socket¾ä±ú
+ * @brief      å¥—æ¥å­—å…³é—­
+ * @param[in]  *sockfd : socketå¥æŸ„
  *
  * @return  None
  ******************************************************************************
@@ -628,7 +628,7 @@ socket_close(void *sockfd)
 {
     new_socket_t *pnew_socket = (new_socket_t *)sockfd;
 
-//    if (pnew_socket->type != E_SOCKET_ADDR) //UDPÒ²ĞèÒª¹Ø±Õ
+//    if (pnew_socket->type != E_SOCKET_ADDR) //UDPä¹Ÿéœ€è¦å…³é—­
     {
         if (pnew_socket->socket > 0)
         {
@@ -647,8 +647,8 @@ socket_close(void *sockfd)
 
 /**
  ******************************************************************************
- * @brief   »ñÈ¡Ì×½Ó×Öip,¶Ë¿Ú
- * @param[in]  *sockfd : socket¾ä±ú
+ * @brief   è·å–å¥—æ¥å­—ip,ç«¯å£
+ * @param[in]  *sockfd : socketå¥æŸ„
  *
  * @retval  0 :
  * @retval  1 :
@@ -663,20 +663,20 @@ socket_get_ip_port(void *sockfd)
 
     if (pnew_socket->type == E_SOCKET_ADDR)
     {
-        printf("¶Ô·½IP£º%d.%d.%d.%d",
+        printf("å¯¹æ–¹IPï¼š%d.%d.%d.%d",
                 pnew_socket->info.ip[0],
                 pnew_socket->info.ip[1],
                 pnew_socket->info.ip[2],
                 pnew_socket->info.ip[3]);
-        printf("¶Ô·½PORT£º%d ", ntohs(pnew_socket->info.remote_port));
+        printf("å¯¹æ–¹PORTï¼š%d ", ntohs(pnew_socket->info.remote_port));
         return 0;
     }
     else
     {
         if (!getpeername((SOCKET)pnew_socket->socket, (struct sockaddr *) &sa, &len))
         {
-            printf("¶Ô·½IP£º%s ", inet_ntoa(sa.sin_addr));
-            printf("¶Ô·½PORT£º%d ", ntohs(sa.sin_port));
+            printf("å¯¹æ–¹IPï¼š%s ", inet_ntoa(sa.sin_addr));
+            printf("å¯¹æ–¹PORTï¼š%d ", ntohs(sa.sin_port));
             return 0;
         }
     }
@@ -685,10 +685,10 @@ socket_get_ip_port(void *sockfd)
 
 /**
  ******************************************************************************
- * @brief   »ñÈ¡Ì×½Ó×Öip,¶Ë¿Ú×Ö·û´®
- * @param[in]  *sockfd : socket¾ä±ú
+ * @brief   è·å–å¥—æ¥å­—ip,ç«¯å£å­—ç¬¦ä¸²
+ * @param[in]  *sockfd : socketå¥æŸ„
  *
- * @retval  ip,¶Ë¿Ú×Ö·û´®
+ * @retval  ip,ç«¯å£å­—ç¬¦ä¸²
  ******************************************************************************
  */
 const char *
@@ -723,10 +723,10 @@ socket_get_ip_port_str(void *sockfd)
 
 /**
  ******************************************************************************
- * @brief   »ñÈ¡socketĞÅÏ¢
- * @param[in]  *sockfd : socket¾ä±ú
+ * @brief   è·å–socketä¿¡æ¯
+ * @param[in]  *sockfd : socketå¥æŸ„
  *
- * @retval  ĞÅÏ¢
+ * @retval  ä¿¡æ¯
  ******************************************************************************
  */
 const socket_info_t *
@@ -739,8 +739,8 @@ socket_info_get(void *sockfd)
 
 /**
  ******************************************************************************
- * @brief   ÉèÖÃsocket info(UDP£¬²ÅÄÜÉèÖÃ)
- * @param[in]  *sockfd : socket¾ä±ú
+ * @brief   è®¾ç½®socket info(UDPï¼Œæ‰èƒ½è®¾ç½®)
+ * @param[in]  *sockfd : socketå¥æŸ„
  * @param[in]  ip      :
  * @param[in]  port    :
  *
@@ -766,8 +766,8 @@ socket_info_set(void *sockfd,
 
 /**
  ******************************************************************************
- * @brief   »ñÈ¡socket type
- * @param[in]  *sockfd : socket¾ä±ú
+ * @brief   è·å–socket type
+ * @param[in]  *sockfd : socketå¥æŸ„
  *
  * @retval  socket type
  ******************************************************************************

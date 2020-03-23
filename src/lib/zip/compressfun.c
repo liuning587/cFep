@@ -4,13 +4,13 @@
 #include <string.h>
 #include "CompressFun.h"
 
-void set_one(unsigned char *x, int a)//½«xµÄ´ÓÇ°ÍùºóÊıµÚa¸ö±ÈÌØÎ»ÖÃÎª1
+void set_one(unsigned char *x, int a)//å°†xçš„ä»å‰å¾€åæ•°ç¬¬aä¸ªæ¯”ç‰¹ä½ç½®ä¸º1
 {
 	unsigned char table[8]={128,64,32,16,8,4,2,1};
 	x[a/8] = x[a/8]^table[a%8];
 }
 
-int get_bit(unsigned char *x, int a)//»ñµÃxµÄµÚa¸ö±ÈÌØÎ»ÖÃµÄÊıÖµ
+int get_bit(unsigned char *x, int a)//è·å¾—xçš„ç¬¬aä¸ªæ¯”ç‰¹ä½ç½®çš„æ•°å€¼
 {
 	unsigned char table[8]={128,64,32,16,8,4,2,1};
 	int bit = 0;
@@ -20,11 +20,11 @@ int get_bit(unsigned char *x, int a)//»ñµÃxµÄµÚa¸ö±ÈÌØÎ»ÖÃµÄÊıÖµ
 }
 
 
-//ÖÜÆÚÑ¹Ëõº¯Êı
-//·µ»ØÖµ£º
-//0£º³É¹¦
-//-1:Ìø¹ı
-//-2:Ê§°Ü
+//å‘¨æœŸå‹ç¼©å‡½æ•°
+//è¿”å›å€¼ï¼š
+//0ï¼šæˆåŠŸ
+//-1:è·³è¿‡
+//-2:å¤±è´¥
 int PeriodCompression(DATA *buffer)
 {
 	int i, j, k;
@@ -43,7 +43,7 @@ int PeriodCompression(DATA *buffer)
 	
 	DATA zip;
 	DATA record;
-	DATA zero;//¼ÇÂ¼ÏàÍ¬ÁĞ´ú±íÔªÖĞµÄ·ÇÁãÔ­
+	DATA zero;//è®°å½•ç›¸åŒåˆ—ä»£è¡¨å…ƒä¸­çš„éé›¶åŸ
 	
 	//begin
 	period = buffer->length;
@@ -51,8 +51,8 @@ int PeriodCompression(DATA *buffer)
 	head_length = buffer->length;
 	current_head_length = buffer->length;
 	
-	//Ê×ÏÈÑ°ÕÒÖÜÆÚ
-	/*È·¶¨²Â²â³¤¶È*/
+	//é¦–å…ˆå¯»æ‰¾å‘¨æœŸ
+	/*ç¡®å®šçŒœæµ‹é•¿åº¦*/
 	if (GUESS_SIZE < (buffer->length/2))        //GUESS_SIZE = 30
 		guess_length = GUESS_SIZE;
 	else
@@ -79,9 +79,9 @@ int PeriodCompression(DATA *buffer)
 							break;
 						}
 					}
-					if ((getit == 1) && (period>current_period))//µ±Ç°ÖÜÆÚÑ°ÕÒ³É¹¦
+					if ((getit == 1) && (period>current_period))//å½“å‰å‘¨æœŸå¯»æ‰¾æˆåŠŸ
 					{
-						//¼ÇÂ¼×î¶ÌÖÜÆÚ¼°ÆäĞÅÏ¢
+						//è®°å½•æœ€çŸ­å‘¨æœŸåŠå…¶ä¿¡æ¯
 						period = current_period;
 						head_length = current_head_length;
 						period_number = current_period_number;
@@ -92,10 +92,10 @@ int PeriodCompression(DATA *buffer)
 			current_period = buffer->length;
 			current_head_length= buffer->length;
 		}
-	}//Ñ°ÕÒÖÜÆÚ½áÊø
+	}//å¯»æ‰¾å‘¨æœŸç»“æŸ
 	
 	
-	//Ñ¹ËõÅĞ¶ÏÊı¾İÌá³öÏàÍ¬ÁĞÊÇ·ñÓĞĞ§ÂÊ
+	//å‹ç¼©åˆ¤æ–­æ•°æ®æå‡ºç›¸åŒåˆ—æ˜¯å¦æœ‰æ•ˆç‡
 	if (period >= buffer->length/2)
 		return -1;
 	else//
@@ -114,9 +114,9 @@ int PeriodCompression(DATA *buffer)
 		
 		if ((zip.x = (word8 *)rt_malloc(buffer->length * 2)) == NULL)
 			exit(0);
-		//·ÖÅä½áÊø
+		//åˆ†é…ç»“æŸ
 		
-		//ËÑÑ°ÖÜÆÚ²¿·ÖÃ¿Ò»ÁĞµÄ×î´óºÍ×îĞ¡Öµ
+		//æœå¯»å‘¨æœŸéƒ¨åˆ†æ¯ä¸€åˆ—çš„æœ€å¤§å’Œæœ€å°å€¼
 		for (k=0; k<period; k++)
 		{
 			MaxMinColumn[2*k] = buffer->x[head_length+k];
@@ -146,8 +146,8 @@ int PeriodCompression(DATA *buffer)
 		
 		memset(zero.x, 0, zero.length);
 		
-		//¹¹ÔìzipÊı¾İ
-		/*Êä³öÍ·²¿Êı¾İ*/
+		//æ„é€ zipæ•°æ®
+		/*è¾“å‡ºå¤´éƒ¨æ•°æ®*/
 		memcpy(zip.x+5, buffer->x, head_length);
 		
 		zip.length = 5 + zero.length + record.length + head_length;
@@ -169,20 +169,20 @@ int PeriodCompression(DATA *buffer)
 			}
 		}
 		
-		//¹¹ÔìzipÊı¾İ
-		zip.x[0] = BIAOSHI1;//Ñ¹Ëõ±êÊ¶
+		//æ„é€ zipæ•°æ®
+		zip.x[0] = BIAOSHI1;//å‹ç¼©æ ‡è¯†
 		zip.x[1] = period;
 		zip.x[2] = head_length;
 		zip.x[3] = buffer->length/256;
 		zip.x[4] = buffer->length%256;
 		
-		//Êä³örecord
+		//è¾“å‡ºrecord
 		memcpy(zip.x+head_length+5, record.x, record.length);
 		
-		//Êä³özero
+		//è¾“å‡ºzero
 		memcpy(zip.x+5+head_length+record.length, zero.x, zero.length);
 		
-		//½«ÁĞ²»È«ÏàÍ¬µÄ¾ØÕóÊä³ö
+		//å°†åˆ—ä¸å…¨ç›¸åŒçš„çŸ©é˜µè¾“å‡º
 		for (i=0; i<period_number; i++)
 		{
 			for (j=0; j<period; j++)
@@ -191,18 +191,18 @@ int PeriodCompression(DATA *buffer)
 					zip.x[zip.length++] = buffer->x[head_length+i*period+j];
 			}
 		}
-		//Êä³öÎ²²¿Êı¾İ
+		//è¾“å‡ºå°¾éƒ¨æ•°æ®
 		for (i=0; i<tail_length; i++)
 			zip.x[zip.length++] = buffer->x[head_length+period*period_number+i];
 		
-		//ÅĞ¶ÏÌá³öÏàÍ¬ÁĞÊÇ·ñÓĞĞ§ÂÊ
+		//åˆ¤æ–­æå‡ºç›¸åŒåˆ—æ˜¯å¦æœ‰æ•ˆç‡
 		if (same_column_number*period_number > 5+record.length+zero.length+no_zero)
 		{
 			memcpy(buffer->x, zip.x, zip.length);
 			buffer->length = zip.length;
 		}
 		
-		//ÊÍ·ÅÖ¸Õë
+		//é‡Šæ”¾æŒ‡é’ˆ
 		rt_free(zip.x);
 		zip.x = NULL;
 		
@@ -226,15 +226,15 @@ int PeriodCompression(DATA *buffer)
 //DEL 	return bit;
 //DEL }
 
-//Î»Í¼Ñ¹Ëõº¯Êı
-//·µ»ØÖµ£º
-//0£º³É¹¦
-//-1:Ìø¹ı
-//-2:Ê§°Ü
+//ä½å›¾å‹ç¼©å‡½æ•°
+//è¿”å›å€¼ï¼š
+//0ï¼šæˆåŠŸ
+//-1:è·³è¿‡
+//-2:å¤±è´¥
 int RAYCompression(DATA *buffer)
 {
 	long int i, j;
-	long int stat_number;			//Í³Æµ¸öÊı¼ÇÊıÆ÷
+	long int stat_number;			//ç»Ÿé¢‘ä¸ªæ•°è®°æ•°å™¨
 	unsigned long int data_length;
 	unsigned long int Byte[256]; 
 	int nolyone;
@@ -250,7 +250,7 @@ int RAYCompression(DATA *buffer)
 	unsigned char rule[3*256];
 	unsigned char flag[256];
 	
-	for (i=0; i<256; i++)			//³õÊ¼»¯
+	for (i=0; i<256; i++)			//åˆå§‹åŒ–
 	{
 		Byte[i] = 0;
 		flag[i] = 0;
@@ -277,7 +277,7 @@ int RAYCompression(DATA *buffer)
 	buffer_copy.length = buffer->length;
 	memcpy(buffer_copy.x, buffer->x, buffer->length);
 	
-	data_length = buffer->length;		//¼ÇÂ¼Ô­Êı¾İ³¤¶È
+	data_length = buffer->length;		//è®°å½•åŸæ•°æ®é•¿åº¦
 	
 	for (j=0; j<buffer->length; j++)
 	{
@@ -292,7 +292,7 @@ int RAYCompression(DATA *buffer)
 		{
 			flag[flag_number++] = (j&0xff);
 		}
-	}				//×Ö½ÚÍ³¼Æ£¬²¢¶ÔbufferÖĞÃ»ÓĞµÄ×Ö½Ú½øĞĞ¼ÇÊı£¬²¢´æÈëÊı×é
+	}				//å­—èŠ‚ç»Ÿè®¡ï¼Œå¹¶å¯¹bufferä¸­æ²¡æœ‰çš„å­—èŠ‚è¿›è¡Œè®°æ•°ï¼Œå¹¶å­˜å…¥æ•°ç»„
 	
 	memset(stat,0x00,(buffer->length)*4);
 	
@@ -354,7 +354,7 @@ int RAYCompression(DATA *buffer)
 		
 		memset(stat,0x00,(buffer->length )*4);
 		
-		//ÖØĞÂÍ³Æµ
+		//é‡æ–°ç»Ÿé¢‘
 		max = 3;
 		stat_number = 0;
 		for (j=0; j<buffer->length-1; j++)
@@ -394,7 +394,7 @@ int RAYCompression(DATA *buffer)
 		buffer->x [buffer->length++] = rule[i*3+2];
 	}
 	
-	//¸½¼ÓÑ¹Ëõ±êÊ¶	==RAY´¦Àí½áÊø===
+	//é™„åŠ å‹ç¼©æ ‡è¯†	==RAYå¤„ç†ç»“æŸ===
 	for (i=0; i<buffer->length; i++)
 		zip.x [i] = buffer->x [i];
 	zip.length = buffer->length;
@@ -410,7 +410,7 @@ int RAYCompression(DATA *buffer)
 		for (i=0; i<zip.length; i++)
 			buffer->x [i+4] = zip.x [i];
 	}
-	//Èç¹ûÑ¹ËõÃ»ÓĞĞ§ÂÊ
+	//å¦‚æœå‹ç¼©æ²¡æœ‰æ•ˆç‡
 	if (buffer_copy.length <= buffer->length)
 	{
 		memcpy(buffer->x, buffer_copy.x, buffer_copy.length);
@@ -427,11 +427,11 @@ int RAYCompression(DATA *buffer)
 	return 0;
 }
 
-//ÍêÕûĞÔ¼ÆËãº¯Êı
-//·µ»ØÖµ£º
-//0£º³É¹¦
-//-1:Ìø¹ı
-//-2:Ê§°Ü
+//å®Œæ•´æ€§è®¡ç®—å‡½æ•°
+//è¿”å›å€¼ï¼š
+//0ï¼šæˆåŠŸ
+//-1:è·³è¿‡
+//-2:å¤±è´¥
 int SHA_64(DATA * buffer)
 {
 	
@@ -451,9 +451,9 @@ int SHA_64(DATA * buffer)
 	memset(c,0,(l+128));
 	
 	SJ.x = c;
-    SHA_PAD(buffer,&SJ); //Êı¾İÌî³ä
+    SHA_PAD(buffer,&SJ); //æ•°æ®å¡«å……
 	
-	n=SJ.length/64;       //·Ö×éÊı£¬Ã¿×é64×Ö½Ú£¬512±ÈÌØ
+	n=SJ.length/64;       //åˆ†ç»„æ•°ï¼Œæ¯ç»„64å­—èŠ‚ï¼Œ512æ¯”ç‰¹
 	y=SJ.x;
 	
 	for(fenzu=0;fenzu<n;fenzu++)
@@ -504,21 +504,21 @@ int SHA_64(DATA * buffer)
 	
 }
 
-//ÖÜÆÚ½âÑ¹º¯Êı
-//·µ»ØÖµ£º
-//0£º³É¹¦
-//-1:Ìø¹ı
-//-2:Ê§°Ü
+//å‘¨æœŸè§£å‹å‡½æ•°
+//è¿”å›å€¼ï¼š
+//0ï¼šæˆåŠŸ
+//-1:è·³è¿‡
+//-2:å¤±è´¥
 int ExpendPeriod(DATA *buffer)
 {
 	int period;
 	int head_length;
 	int period_number;
 	int tail_length;
-	word32 data_length;//Ô­Êı¾İ³¤¶È
+	word32 data_length;//åŸæ•°æ®é•¿åº¦
 	int same_column_number;
 	int no_zero;
-	int count1, count2, count3;//ÀÛ¼Ó¼ÇÊıÆ÷
+	int count1, count2, count3;//ç´¯åŠ è®°æ•°å™¨
 	
 	int i, j, m;
 //	word32 k;
@@ -530,13 +530,13 @@ int ExpendPeriod(DATA *buffer)
 	
 	if (buffer->x[0] == BIAOSHI1)
 	{
-		//½âÎöÑ¹ËõĞÅÏ¢
+		//è§£æå‹ç¼©ä¿¡æ¯
 		period = buffer->x[1];
 		head_length = buffer->x[2];
 		data_length = buffer->x[3] * 256 + buffer->x[4];
 		
-		//³õÊ¼»¯·ÖÅäÄÚ´æ
-		period_number = (data_length - head_length) / period;//»ñµÃÖÜÆÚÊı
+		//åˆå§‹åŒ–åˆ†é…å†…å­˜
+		period_number = (data_length - head_length) / period;//è·å¾—å‘¨æœŸæ•°
 		
 		tail_length = data_length - period * period_number - head_length;
 		
@@ -547,15 +547,15 @@ int ExpendPeriod(DATA *buffer)
 		
 		if ((recover.x = (word8 *)rt_malloc(data_length)) == NULL)
 			exit(0);
-		//·ÖÅä½áÊø
+		//åˆ†é…ç»“æŸ
 		
-		//===============»Ö¸´Êı¾İ==============//
+		//===============æ¢å¤æ•°æ®==============//
 		
 		recover.length =  head_length + period * period_number;
-		//»Ö¸´Í·²¿Êı¾İ
+		//æ¢å¤å¤´éƒ¨æ•°æ®
 		memcpy(recover.x, buffer->x+5, head_length);
 		
-		//ÌáÈ¡record
+		//æå–record
 		memcpy(record.x, buffer->x+5+head_length, record.length);
 		
 		same_column_number = 0;
@@ -570,7 +570,7 @@ int ExpendPeriod(DATA *buffer)
 		if ((zero.x = (word8 *)rt_malloc(zero.length)) == NULL)
 			exit(0);
 		
-		//ÌáÈ¡zero
+		//æå–zero
 		memcpy(zero.x, buffer->x+5+head_length+record.length, zero.length);
 		
 		no_zero = 0;
@@ -580,7 +580,7 @@ int ExpendPeriod(DATA *buffer)
 				no_zero++;
 		}
 		
-		//»Ö¸´ÖÜÆÚ¶ÎÊı¾İ
+		//æ¢å¤å‘¨æœŸæ®µæ•°æ®
 		count2 = 0;
 		count3 = 0;
 		for (i=0; i<period_number; i++)
@@ -594,7 +594,7 @@ int ExpendPeriod(DATA *buffer)
 						buffer->x[5+head_length+record.length+zero.length+no_zero+i*(period-same_column_number)+count1];
 					count1++;			
 				}
-				else//ÁĞÏàÍ¬
+				else//åˆ—ç›¸åŒ
 				{
 					if (i == 0)
 					{
@@ -619,16 +619,16 @@ int ExpendPeriod(DATA *buffer)
 			}
 		}
 		
-		//»Ö¸´Î²²¿Êı¾İ
+		//æ¢å¤å°¾éƒ¨æ•°æ®
 		for (i=0; i<tail_length; i++)
 			recover.x[recover.length++] = buffer->x[buffer->length-tail_length+i];
-		//½áÊø
+		//ç»“æŸ
 		
-		//ÖØĞÂ·ÖÅäbufferÄÚ´æ
+		//é‡æ–°åˆ†é…bufferå†…å­˜
 		//		if ((buffer->x = realloc(buffer->x, data_length)) == NULL)
 		//			exit(0);
 		
-		//·µ»Øbuffer
+		//è¿”å›buffer
 		memcpy(buffer->x, recover.x, recover.length);
 		buffer->length = recover.length;
 		
@@ -647,11 +647,11 @@ int ExpendPeriod(DATA *buffer)
 	return 0;
 }
 
-//Î»Í¼½âÑ¹º¯Êı
-//·µ»ØÖµ£º
-//0£º³É¹¦
-//-1:Ìø¹ı
-//-2:Ê§°Ü
+//ä½å›¾è§£å‹å‡½æ•°
+//è¿”å›å€¼ï¼š
+//0ï¼šæˆåŠŸ
+//-1:è·³è¿‡
+//-2:å¤±è´¥
 int ExpendRAY(DATA *buffer)
 {
 	DATA recover;
@@ -665,7 +665,7 @@ int ExpendRAY(DATA *buffer)
 	rule_number = (long int)buffer->x [1];
 	data_length = (long int)buffer->x [2]*256 + buffer->x [3];
 	
-	//ÖØĞÂ·ÖÅäbufferÄÚ´æ
+	//é‡æ–°åˆ†é…bufferå†…å­˜
 	//	if ((buffer->data = (BYTE *)realloc(buffer->data , data_length*2)) == NULL)
 	//		return -2;
 	
@@ -681,7 +681,7 @@ int ExpendRAY(DATA *buffer)
 		
 		for (j=0; j<rule_number; j++)
 		{	
-			//ÌáÈ¡¹æÔò
+			//æå–è§„åˆ™
 			flag = buffer->x [buffer->length - 3];
 			digram[0] = buffer->x [buffer->length - 2];
 			digram[1] = buffer->x [buffer->length - 1];
@@ -710,7 +710,7 @@ int ExpendRAY(DATA *buffer)
 			buffer->length = recover.length;
 		}
 		
-		//ÊÍ·ÅÄÚ´æ
+		//é‡Šæ”¾å†…å­˜
 		rt_free(recover.x);
 		recover.x = NULL;
 		
@@ -806,13 +806,13 @@ int CheckHash(DATA *buffer)
 	long int i;
 	int datalen;
 	
-	for (i=buffer->length-8; i<buffer->length; i++)		//ÌáÈ¡É¢ÁĞÖµ
+	for (i=buffer->length-8; i<buffer->length; i++)		//æå–æ•£åˆ—å€¼
 		MD[i-(buffer->length-8)] = buffer->x [i];
 	
-	buffer->length -= 8;     //È¥µôÉ¢ÁĞÖµ
+	buffer->length -= 8;     //å»æ‰æ•£åˆ—å€¼
 	 datalen = buffer->length;
 	
-	if(SHA_64(buffer)<0)								//ÖØĞÂ¼ÆËã											
+	if(SHA_64(buffer)<0)								//é‡æ–°è®¡ç®—											
 		return -1;
 	
 	for(i=0; i<8; i++)
@@ -928,9 +928,9 @@ void SHA_PAD(DATA * buffer,DATA * y)
 	word8 *p;
 	//	DATA          OUT;
 	
-	l=buffer->length<<3;         //Ô´Êı¾İµÄ±ÈÌØ³¤¶È£¬¼´ÎÄ¼şÖĞµÄ|x|
+	l=buffer->length<<3;         //æºæ•°æ®çš„æ¯”ç‰¹é•¿åº¦ï¼Œå³æ–‡ä»¶ä¸­çš„|x|
 	d=(447-l)%512;
-	byte_num=(l+1+d+64)>>3;     //À©³äºóÊı¾İµÄ×Ö½ÚÊı£¬ÇÒÎªÊÇ64µÄ±¶Êı
+	byte_num=(l+1+d+64)>>3;     //æ‰©å……åæ•°æ®çš„å­—èŠ‚æ•°ï¼Œä¸”ä¸ºæ˜¯64çš„å€æ•°
 	
 	p=buffer->x;
 	for(i=0;i<buffer->length;i++) y->x[i]=p[i];

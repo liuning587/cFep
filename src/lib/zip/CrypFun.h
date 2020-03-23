@@ -6,14 +6,14 @@
 
 
 
-#define MAXBUFFER		20000	//×î´óÉêÇëÄÚ´æ³¤¶È
+#define MAXBUFFER		20000	//æœ€å¤§ç”³è¯·å†…å­˜é•¿åº¦
 #define MAXBC				4
 #define MAXKC				4
 #define MAXROUNDS			10
 #define ROUNDS              10
 #define BUF_DEF				1024
 
-//int OK;//ÓÃÓÚÑéÖ¤hashÖµ
+//int OK;//ç”¨äºéªŒè¯hashå€¼
 
 //
 #ifndef DATAZIP
@@ -25,10 +25,10 @@ typedef unsigned char	word8;
 typedef unsigned short  word16;
 typedef unsigned long	word32;
 
-#define   BIAOSHI1  0xDD//periodÑ¹Ëõ±êÊ¶
-#define   BIAOSHI2  0xBB//RAYÑ¹Ëõ±êÊ¶
+#define   BIAOSHI1  0xDD//periodå‹ç¼©æ ‡è¯†
+#define   BIAOSHI2  0xBB//RAYå‹ç¼©æ ‡è¯†
 
-#define   COMPARE_CHAR  0x9A//ÎªÑ°ÕÒÖÜÆÚÉèÖÃµÄ±È½ÏÖµ
+#define   COMPARE_CHAR  0x9A//ä¸ºå¯»æ‰¾å‘¨æœŸè®¾ç½®çš„æ¯”è¾ƒå€¼
 #define   GUESS_SIZE  30
 
 typedef struct
@@ -38,9 +38,9 @@ typedef struct
 }DATA;
 
 struct vlong_value {
-  unsigned * a; // µ¥Î»Êı×é
-  unsigned z; // ·ÖÅäµÄµ¥Î»Êı
-  unsigned n; // ÒÑÓÃµÄµ¥Î» (Ö»¶Á)
+  unsigned * a; // å•ä½æ•°ç»„
+  unsigned z; // åˆ†é…çš„å•ä½æ•°
+  unsigned n; // å·²ç”¨çš„å•ä½ (åªè¯»)
 };
 
 struct prime_factory

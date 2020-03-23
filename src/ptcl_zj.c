@@ -36,14 +36,14 @@
     CS            ( 1 Byte )
     Flag          ( 1 Byte 16H)
 */
-//±¨ÎÄÍ·½á¹¹Ìå
+//æŠ¥æ–‡å¤´ç»“æ„ä½“
 typedef struct FrameZJHeaderStruct
 {
     unsigned char frameStart;//0x68
     union
     {
         unsigned char deviceAddr[4];
-        unsigned int logicaddr;//ÖÕ¶ËÂß¼­µØÖ·
+        unsigned int logicaddr;//ç»ˆç«¯é€»è¾‘åœ°å€
         struct
         {
             unsigned char canton[2];
@@ -58,7 +58,7 @@ typedef struct FrameZJHeaderStruct
                                   frameSeq      :    7 ,
                                   seqInFrame    :    3 ;
         };
-        unsigned short int hostIDArea;//D0--D5Ö÷Õ¾µØÖ·  D6--D12Ö¡ĞòºÅºÅ D13-D15Ö¡ÄÚĞò
+        unsigned short int hostIDArea;//D0--D5ä¸»ç«™åœ°å€  D6--D12å¸§åºå·å· D13-D15å¸§å†…åº
     };
     unsigned char dataAreaStart;//0x68
     union
@@ -69,9 +69,9 @@ typedef struct FrameZJHeaderStruct
                              exception          :    1 ,
                              DIR                :    1 ;
         };
-        unsigned char ctrlCodeArea;//D0--D5¹¦ÄÜÂë  D6Òì³£±êÖ¾ D7´«Êä·½Ïò
+        unsigned char ctrlCodeArea;//D0--D5åŠŸèƒ½ç   D6å¼‚å¸¸æ ‡å¿— D7ä¼ è¾“æ–¹å‘
     };
-    unsigned short int lenDataArea;//Ö¡Í·Ö®ºó£¬µ½¼ìÑéÖ®Ç°µÄÊı¾İÓò³¤¶È
+    unsigned short int lenDataArea;//å¸§å¤´ä¹‹åï¼Œåˆ°æ£€éªŒä¹‹å‰çš„æ•°æ®åŸŸé•¿åº¦
 } zj_header_t;
 
 struct PSWStruct
@@ -86,19 +86,19 @@ struct PSWStruct
 /*-----------------------------------------------------------------------------
  Section: Constant Definitions
  ----------------------------------------------------------------------------*/
-#define CHKFRAME_TIMEOUT                5   /**< ±¨ÎÄ³¬Ê±Ê±¼äÄ¬ÈÏ10Ãë  */
-#define FRAME_NO_DATA_LEN               14   /**< ÎŞÊı¾İÄÚÈİÓĞÊı¾İ±êÊ¾µÄ±¨ÎÄÍ·³¤¶È */
+#define CHKFRAME_TIMEOUT                5   /**< æŠ¥æ–‡è¶…æ—¶æ—¶é—´é»˜è®¤10ç§’  */
+#define FRAME_NO_DATA_LEN               14   /**< æ— æ•°æ®å†…å®¹æœ‰æ•°æ®æ ‡ç¤ºçš„æŠ¥æ–‡å¤´é•¿åº¦ */
 
 /* states for scanning incomming bytes from a bytestream */
 #define ZJ_FRAME_STATES_NULL               0    /**< no synchronisation */
-#define ZJ_FRAME_STATES_FLAG_FIR           1    /**< 1Ö¡ÆğÊ¼·û */
-#define ZJ_FRAME_STATES_RTUA               2    /**< 4ÖÕ¶ËÂß¼­µØÖ· */
-#define ZJ_FRAME_STATES_MSTA               3    /**< 2Ö÷Õ¾µØÖ·ÓëÃüÁîĞòºÅ */
+#define ZJ_FRAME_STATES_FLAG_FIR           1    /**< 1å¸§èµ·å§‹ç¬¦ */
+#define ZJ_FRAME_STATES_RTUA               2    /**< 4ç»ˆç«¯é€»è¾‘åœ°å€ */
+#define ZJ_FRAME_STATES_MSTA               3    /**< 2ä¸»ç«™åœ°å€ä¸å‘½ä»¤åºå· */
 #define GW_FRAME_STATES_FLAG_SEC           4    /**< 0x16 */
-#define ZJ_FRAME_STATES_CONTROL            5    /**< 1¿ØÖÆÂë */
-#define ZJ_FRAME_STATES_LEN1               6    /**< Êı¾İ³¤¶È1 */
-#define ZJ_FRAME_STATES_LEN2               7    /**< Êı¾İ³¤¶È2 */
-#define ZJ_FRAME_STATES_LINK_USER_DATA     8    /**< Êı¾İÓò */
+#define ZJ_FRAME_STATES_CONTROL            5    /**< 1æ§åˆ¶ç  */
+#define ZJ_FRAME_STATES_LEN1               6    /**< æ•°æ®é•¿åº¦1 */
+#define ZJ_FRAME_STATES_LEN2               7    /**< æ•°æ®é•¿åº¦2 */
+#define ZJ_FRAME_STATES_LINK_USER_DATA     8    /**< æ•°æ®åŸŸ */
 #define ZJ_FRAME_STATES_CS                 9    /**< wait for the CS */
 #define ZJ_FRAME_STATES_END                10   /**< wait for the 16H */
 #define ZJ_FRAME_STATES_COMPLETE           11   /**< complete frame */
@@ -128,9 +128,9 @@ struct PSWStruct
  ----------------------------------------------------------------------------*/
 /**
  ******************************************************************************
- * @brief   ¹úÍø±¨ÎÄ¼ì²â³õÊ¼»¯
- * @param[in]  *pchk         : ±¨ÎÄ¼ì²â¶ÔÏó
- * @param[in]  *pfn_frame_in : µ±ÊÕµ½ºÏ·¨±¨ÎÄºóÖ´ĞĞµÄ»Øµ÷º¯Êı
+ * @brief   å›½ç½‘æŠ¥æ–‡æ£€æµ‹åˆå§‹åŒ–
+ * @param[in]  *pchk         : æŠ¥æ–‡æ£€æµ‹å¯¹è±¡
+ * @param[in]  *pfn_frame_in : å½“æ”¶åˆ°åˆæ³•æŠ¥æ–‡åæ‰§è¡Œçš„å›è°ƒå‡½æ•°
  *
  * @return  None
  ******************************************************************************
@@ -148,11 +148,11 @@ zj_chkfrm_init(chkfrm_t *pchk,
 
 /**
  ******************************************************************************
- * @brief   ¹úÍø±¨ÎÄ¼ì²â
- * @param[in]  *pc      : Á¬½Ó¶ÔÏó(fixme : ÊÇ·ñĞèÒªÃ¿´Î´«Èë?)
- * @param[in]  *pchk    : ±¨ÎÄ¼ì²â¶ÔÏó
- * @param[in]  *rxBuf   : ÊäÈëÊı¾İ
- * @param[in]  rxLen    : ÊäÈëÊı¾İ³¤¶È
+ * @brief   å›½ç½‘æŠ¥æ–‡æ£€æµ‹
+ * @param[in]  *pc      : è¿æ¥å¯¹è±¡(fixme : æ˜¯å¦éœ€è¦æ¯æ¬¡ä¼ å…¥?)
+ * @param[in]  *pchk    : æŠ¥æ–‡æ£€æµ‹å¯¹è±¡
+ * @param[in]  *rxBuf   : è¾“å…¥æ•°æ®
+ * @param[in]  rxLen    : è¾“å…¥æ•°æ®é•¿åº¦
  *
  * @return  None
  ******************************************************************************
@@ -163,13 +163,13 @@ zj_chkfrm(void *pc,
         const unsigned char *rxBuf,
         int rxLen)
 {
-    /* Èç¹ûÒÑ¾­Íê³ÉµÄèåÔòÖØĞÂ¿ªÊ¼ */
+    /* å¦‚æœå·²ç»å®Œæˆçš„æ¡¢åˆ™é‡æ–°å¼€å§‹ */
     if (pchk->frame_state == ZJ_FRAME_STATES_COMPLETE)
     {
         pchk->frame_state = ZJ_FRAME_STATES_NULL;
     }
 
-    /* Èç¹û³¬Ê±ÔòÖØĞÂ¿ªÊ¼ */
+    /* å¦‚æœè¶…æ—¶åˆ™é‡æ–°å¼€å§‹ */
     if (((time(NULL) - pchk->update_time) > pchk->overtime)
         || ((pchk->update_time - time(NULL)) > pchk->overtime))
     {
@@ -220,16 +220,16 @@ zj_chkfrm(void *pc,
 
             case ZJ_FRAME_STATES_CONTROL:
                 pchk->cs += *rxBuf;
-                pchk->frame_state = ZJ_FRAME_STATES_LEN1;/* ²»ÄÜ¼ì²â·½Ïò£¬ÒòÎª¼¶ÁªÓĞÉÏĞĞ±¨ÎÄ */
+                pchk->frame_state = ZJ_FRAME_STATES_LEN1;/* ä¸èƒ½æ£€æµ‹æ–¹å‘ï¼Œå› ä¸ºçº§è”æœ‰ä¸Šè¡ŒæŠ¥æ–‡ */
                 break;
 
-            case ZJ_FRAME_STATES_LEN1: /* ¼ì²âL1µÄµÍ×Ö½Ú */
+            case ZJ_FRAME_STATES_LEN1: /* æ£€æµ‹L1çš„ä½å­—èŠ‚ */
                 pchk->cs += *rxBuf;
-                pchk->frame_state = ZJ_FRAME_STATES_LEN2;/* Îª¼æÈİÖ÷Õ¾²»¼ì²â¹æÔ¼ÀàĞÍ */
+                pchk->frame_state = ZJ_FRAME_STATES_LEN2;/* ä¸ºå…¼å®¹ä¸»ç«™ä¸æ£€æµ‹è§„çº¦ç±»å‹ */
                 pchk->dlen = *rxBuf;
                 break;
 
-            case ZJ_FRAME_STATES_LEN2: /* ¼ì²âL1µÄ¸ß×Ö½Ú */
+            case ZJ_FRAME_STATES_LEN2: /* æ£€æµ‹L1çš„é«˜å­—èŠ‚ */
                 pchk->dlen += ((unsigned int)*rxBuf << 8u);
                 if (pchk->dlen > (the_max_frame_bytes - 13)) //fixme:
                 {
@@ -294,12 +294,12 @@ zj_chkfrm(void *pc,
             pchk->pbuf_pos++;
         }
 
-        /* ÍêÕû±¨ÎÄ£¬µ÷ÓÃ´¦Àíº¯Êı½Ó¿Ú */
+        /* å®Œæ•´æŠ¥æ–‡ï¼Œè°ƒç”¨å¤„ç†å‡½æ•°æ¥å£ */
         if (pchk->frame_state == ZJ_FRAME_STATES_COMPLETE)
         {
             if (pchk->pfn_frame_in)
             {
-                pchk->pfn_frame_in(pc, pchk->pbuf, pchk->pbuf_pos); //ÕâÀï´¦ÀíÒµÎñ
+                pchk->pfn_frame_in(pc, pchk->pbuf, pchk->pbuf_pos); //è¿™é‡Œå¤„ç†ä¸šåŠ¡
             }
 
             free(pchk->pbuf);
@@ -315,11 +315,11 @@ zj_chkfrm(void *pc,
 
 /**
  ******************************************************************************
- * @brief   »ñÈ¡±¨ÎÄ´«Êä·½Ïò,0:Ö÷Õ¾-->ÖÕ¶Ë, 1:ÖÕ¶Ë-->Ö÷Õ¾
- * @param[in]  *p : ±¨ÎÄ»º´æ
+ * @brief   è·å–æŠ¥æ–‡ä¼ è¾“æ–¹å‘,0:ä¸»ç«™-->ç»ˆç«¯, 1:ç»ˆç«¯-->ä¸»ç«™
+ * @param[in]  *p : æŠ¥æ–‡ç¼“å­˜
  *
- * @retval  0 : Ö÷Õ¾-->ÖÕ¶Ë
- * @retval  1 : ÖÕ¶Ë-->Ö÷Õ¾
+ * @retval  0 : ä¸»ç«™-->ç»ˆç«¯
+ * @retval  1 : ç»ˆç«¯-->ä¸»ç«™
  ******************************************************************************
  */
 static int
@@ -332,10 +332,10 @@ zj_get_dir(const unsigned char* p)
 
 /**
  ******************************************************************************
- * @brief   »ñÈ¡±¨ÎÄÀàĞÍ
- * @param[in]  *p : ±¨ÎÄ»º´æ
+ * @brief   è·å–æŠ¥æ–‡ç±»å‹
+ * @param[in]  *p : æŠ¥æ–‡ç¼“å­˜
  *
- * @retval  ±¨ÎÄÀàĞÍ
+ * @retval  æŠ¥æ–‡ç±»å‹
  ******************************************************************************
  */
 static func_type_e
@@ -375,11 +375,11 @@ zj_frame_type(const unsigned char* p)
 
 /**
  ******************************************************************************
- * @brief   ĞÄÌø¡¢µÇÂ½°ü»ØÓ¦
- * @param[in]  *p  : ÊäÈë±¨ÎÄ»º´æ
- * @param[in]  *po : Êä³ö±¨ÎÄ»º´æ
+ * @brief   å¿ƒè·³ã€ç™»é™†åŒ…å›åº”
+ * @param[in]  *p  : è¾“å…¥æŠ¥æ–‡ç¼“å­˜
+ * @param[in]  *po : è¾“å‡ºæŠ¥æ–‡ç¼“å­˜
  *
- * @return  Êä³ö±¨ÎÄ³¤¶È
+ * @return  è¾“å‡ºæŠ¥æ–‡é•¿åº¦
  ******************************************************************************
  */
 static int
@@ -400,7 +400,7 @@ zj_build_reply_packet(const unsigned char *p,
 
     psend->ctrlCodeArea = pin->ctrlCodeArea;
     psend->exception = 0;
-    psend->DIR = 0; //0 : Ö÷Õ¾-->ÖÕ¶Ë
+    psend->DIR = 0; //0 : ä¸»ç«™-->ç»ˆç«¯
 
     psend->lenDataArea = 0;
 
@@ -412,12 +412,12 @@ zj_build_reply_packet(const unsigned char *p,
 
 /**
  ******************************************************************************
- * @brief   ÖÕ¶ËµØÖ·ºÍ±¨ÎÄÖĞµÄÖÕ¶ËµØÖ·±È½Ï
- * @param[in]  *paddr : ÊäÈëÖÕ¶ËµØÖ·
- * @param[in]  *p     : ÊäÈë±¨ÎÄ
+ * @brief   ç»ˆç«¯åœ°å€å’ŒæŠ¥æ–‡ä¸­çš„ç»ˆç«¯åœ°å€æ¯”è¾ƒ
+ * @param[in]  *paddr : è¾“å…¥ç»ˆç«¯åœ°å€
+ * @param[in]  *p     : è¾“å…¥æŠ¥æ–‡
  *
- * @retval  1 : ²»ÏàÍ¬
- * @retval  0 :   ÏàÍ¬
+ * @retval  1 : ä¸ç›¸åŒ
+ * @retval  0 :   ç›¸åŒ
  ******************************************************************************
  */
 static int
@@ -431,12 +431,12 @@ zj_addr_cmp(const addr_t *paddr,
 
 /**
  ******************************************************************************
- * @brief   ´Ó±¨ÎÄÖĞÈ¡³öÖÕ¶ËµØÖ·
- * @param[in]  *paddr : ·µ»ØÖÕ¶ËµØÖ·
- * @param[in]  *p     : ÊäÈë±¨ÎÄ
+ * @brief   ä»æŠ¥æ–‡ä¸­å–å‡ºç»ˆç«¯åœ°å€
+ * @param[in]  *paddr : è¿”å›ç»ˆç«¯åœ°å€
+ * @param[in]  *p     : è¾“å…¥æŠ¥æ–‡
  *
- * @retval  1 : ²»ÏàÍ¬
- * @retval  0 :   ÏàÍ¬
+ * @retval  1 : ä¸ç›¸åŒ
+ * @retval  0 :   ç›¸åŒ
  ******************************************************************************
  */
 static void
@@ -451,10 +451,10 @@ zj_addr_get(addr_t *paddr,
 
 /**
  ******************************************************************************
- * @brief   »ñÈ¡ÖÕ¶ËµØÖ·×Ö·û´®
- * @param[in]  *paddr : ÖÕ¶ËµØÖ·
+ * @brief   è·å–ç»ˆç«¯åœ°å€å­—ç¬¦ä¸²
+ * @param[in]  *paddr : ç»ˆç«¯åœ°å€
  *
- * @retval  ÖÕ¶ËµØÖ·×Ö·û´®
+ * @retval  ç»ˆç«¯åœ°å€å­—ç¬¦ä¸²
  ******************************************************************************
  */
 static const char *
@@ -470,12 +470,12 @@ zj_addr_str(const addr_t *paddr)
 
 /**
  ******************************************************************************
- * @brief   Ö÷Õ¾MSAµØÖ·ºÍ±¨ÎÄÖĞµÄÖ÷Õ¾MSAµØÖ·±È½Ï
- * @param[in]  *paddr : ÊäÈëÖ÷Õ¾MSAµØÖ·
- * @param[in]  *p     : ÊäÈë±¨ÎÄ
+ * @brief   ä¸»ç«™MSAåœ°å€å’ŒæŠ¥æ–‡ä¸­çš„ä¸»ç«™MSAåœ°å€æ¯”è¾ƒ
+ * @param[in]  *paddr : è¾“å…¥ä¸»ç«™MSAåœ°å€
+ * @param[in]  *p     : è¾“å…¥æŠ¥æ–‡
  *
- * @retval  1 : ²»ÏàÍ¬
- * @retval  0 :   ÏàÍ¬
+ * @retval  1 : ä¸ç›¸åŒ
+ * @retval  0 :   ç›¸åŒ
  ******************************************************************************
  */
 static int
@@ -489,12 +489,12 @@ zj_msa_cmp(const addr_t *paddr,
 
 /**
  ******************************************************************************
- * @brief   ´Ó±¨ÎÄÖĞÈ¡³öÖ÷Õ¾MSAµØÖ·
- * @param[in]  *paddr : ·µ»ØÖ÷Õ¾MSAµØÖ·
- * @param[in]  *p     : ÊäÈë±¨ÎÄ
+ * @brief   ä»æŠ¥æ–‡ä¸­å–å‡ºä¸»ç«™MSAåœ°å€
+ * @param[in]  *paddr : è¿”å›ä¸»ç«™MSAåœ°å€
+ * @param[in]  *p     : è¾“å…¥æŠ¥æ–‡
  *
- * @retval  1 : ²»ÏàÍ¬
- * @retval  0 :   ÏàÍ¬
+ * @retval  1 : ä¸ç›¸åŒ
+ * @retval  0 :   ç›¸åŒ
  ******************************************************************************
  */
 static void
@@ -509,11 +509,11 @@ zj_msa_get(addr_t *paddr,
 
 /**
  ******************************************************************************
- * @brief   ÅĞ¶ÏÖ÷Õ¾·¢³öµÄMSAÊÇ·ñÓĞĞ§
- * @param[in]  *paddr : ·µ»ØÖ÷Õ¾MSAµØÖ·
+ * @brief   åˆ¤æ–­ä¸»ç«™å‘å‡ºçš„MSAæ˜¯å¦æœ‰æ•ˆ
+ * @param[in]  *paddr : è¿”å›ä¸»ç«™MSAåœ°å€
  *
- * @retval  1 : ÓĞĞ§
- * @retval  0 : ÎŞĞ§
+ * @retval  1 : æœ‰æ•ˆ
+ * @retval  0 : æ— æ•ˆ
  ******************************************************************************
  */
 static int
@@ -524,7 +524,7 @@ zj_is_msa_valid(const addr_t *paddr)
 
 static const ptcl_func_t the_zj_ptcl_func =
 {
-    "¹ã¶«¡¢Õã½­",
+    "å¹¿ä¸œã€æµ™æ±Ÿ",
     1,
     zj_chkfrm_init,
     zj_chkfrm,
@@ -542,8 +542,8 @@ static const ptcl_func_t the_zj_ptcl_func =
 };
 /**
  ******************************************************************************
- * @brief   »ñÈ¡¹úÍøĞ­Òé´¦Àí½Ó¿Ú
- * @retval  ¹úÍøĞ­Òé´¦Àí½Ó¿Ú
+ * @brief   è·å–å›½ç½‘åè®®å¤„ç†æ¥å£
+ * @retval  å›½ç½‘åè®®å¤„ç†æ¥å£
  ******************************************************************************
  */
 const ptcl_func_t *

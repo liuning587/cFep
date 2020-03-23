@@ -1,8 +1,8 @@
 /**
  ******************************************************************************
  * @file       maths.h
- * @brief      ÏµÍ³ÔËËãÄÚÁªº¯ÊıºÍºêµÄ½Ó¿Ú
- * @details    ±¾ÎÄ¼ş¶¨ÒåÏµÍ³ÖĞÓÃµ½µÄËùÓĞËãÊ½ÔËËãºê¶¨Òå
+ * @brief      ç³»ç»Ÿè¿ç®—å†…è”å‡½æ•°å’Œå®çš„æ¥å£
+ * @details    æœ¬æ–‡ä»¶å®šä¹‰ç³»ç»Ÿä¸­ç”¨åˆ°çš„æ‰€æœ‰ç®—å¼è¿ç®—å®å®šä¹‰
  * @copyright 
  ******************************************************************************
  */
@@ -37,9 +37,9 @@
 #define LLNLSB(x)   (((x) >> 4) & 0x0F)
 #define LLNLHB(x)   (((x) >> 8) & 0x0f)
 #define BYTESWAP(x) ((MSB((x)) | (LSB((x)) << 8)))
-#define BITS(x,y)   (((x)>>(y))&0x01)   /* ÅĞ¶ÏÄ³Î»ÊÇ·ñÎª1 */
+#define BITS(x,y)   (((x)>>(y))&0x01)   /* åˆ¤æ–­æŸä½æ˜¯å¦ä¸º1 */
 #define SETBITS(x,y,n) (x) = (n) ? ((x)|(1 << (y))) : ((x) &(~(1 << (y))));
-#define INVERSE(x,y)    ((x)=(x)^(1<<(y)))  /* ¸øÄ³Î»ÖÃ·´ */
+#define INVERSE(x,y)    ((x)=(x)^(1<<(y)))  /* ç»™æŸä½ç½®å */
 #define ARRAY_SIZE(a) (sizeof (a) / sizeof ((a)[0]))
 
 #define MOFFSET(structure, member)  /* byte offset of member in structure*/\
@@ -62,7 +62,7 @@
 #define toascii(c)          ((c) & 0177)
 #define STR_LEN(str)        (sizeof(str) - 1)
 
-/*ÈòÄêÅĞ¶Ï*/
+/*é—°å¹´åˆ¤æ–­*/
 #define IS_LEAP_YEAR(y) (((((y) % 4) == 0) && (((y) % 100) != 0)) \
           || (((y) % 400) == 0))
 

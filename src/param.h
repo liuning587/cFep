@@ -32,34 +32,34 @@ typedef enum
 
 typedef struct
 {
-    int support_front;                      /**< ÊÇ·ñÆôÓÃÇ°ÖÃÍ¨ÐÅ */
-    char front_ip[64];                      /**< Ç°ÖÃIPµØÖ· */
-    unsigned short int front_tcp_port;      /**< Ç°ÖÃTCP¶Ë¿Ú */
-    int front_timeout;                      /**< Ç°ÖÃÍ¨ÐÅ³¬Ê±(µ¥Î»: us) */
+    int support_front;                      /**< æ˜¯å¦å¯ç”¨å‰ç½®é€šä¿¡ */
+    char front_ip[64];                      /**< å‰ç½®IPåœ°å€ */
+    unsigned short int front_tcp_port;      /**< å‰ç½®TCPç«¯å£ */
+    int front_timeout;                      /**< å‰ç½®é€šä¿¡è¶…æ—¶(å•ä½: us) */
 
-    unsigned short int app_tcp_port;        /**< ºóÌ¨TCP¶Ë¿Ú */
-    unsigned short int terminal_tcp_port;   /**< ÖÕ¶ËTCP¶Ë¿Ú */
-    unsigned short int terminal_udp_port;   /**< ÖÕ¶ËUDP¶Ë¿Ú */
-    unsigned short int telnet_port;         /**< telnet¶Ë¿Ú */
+    unsigned short int app_tcp_port;        /**< åŽå°TCPç«¯å£ */
+    unsigned short int terminal_tcp_port;   /**< ç»ˆç«¯TCPç«¯å£ */
+    unsigned short int terminal_udp_port;   /**< ç»ˆç«¯UDPç«¯å£ */
+    unsigned short int telnet_port;         /**< telnetç«¯å£ */
 
-    int timeout;                            /**< TCPÁ¬½Ó³¬Ê±Ê±¼ä(µ¥Î»:·ÖÖÓ) */
+    int timeout;                            /**< TCPè¿žæŽ¥è¶…æ—¶æ—¶é—´(å•ä½:åˆ†é’Ÿ) */
 
-    int ptcl_type;                          /**< Ð­ÒéÀàÐÍ */
-    int support_compress;                   /**< Ö§³ÖÄÏÍø¼ÓÃÜËã·¨ */
-    int support_cas;                        /**< Ö§³ÖÄÏÍø¼¶Áª */
-    int support_cas_link;                   /**< Ö§³ÖÄÏÍøÖÕ¶ËµÇÂ½¡¢ÐÄÌø */
-    int max_frame_bytes;                    /**< µ¥±¨ÎÄ×î´ó×Ö½ÚÊý */
-    int support_comm_terminal;              /**< ÔÊÐíÖÕ¶ËÖØ¸´ÉÏÏß */
-    int is_cfep_reply_heart;                /**< ÔÊÐíÇ°ÖÃ»úÎ¬»¤ÐÄÌøÃüÁî */
+    int ptcl_type;                          /**< åè®®ç±»åž‹ */
+    int support_compress;                   /**< æ”¯æŒå—ç½‘åŠ å¯†ç®—æ³• */
+    int support_cas;                        /**< æ”¯æŒå—ç½‘çº§è” */
+    int support_cas_link;                   /**< æ”¯æŒå—ç½‘ç»ˆç«¯ç™»é™†ã€å¿ƒè·³ */
+    int max_frame_bytes;                    /**< å•æŠ¥æ–‡æœ€å¤§å­—èŠ‚æ•° */
+    int support_comm_terminal;              /**< å…è®¸ç»ˆç«¯é‡å¤ä¸Šçº¿ */
+    int is_cfep_reply_heart;                /**< å…è®¸å‰ç½®æœºç»´æŠ¤å¿ƒè·³å‘½ä»¤ */
 
-    int terminal_heartbeat_cycle_multiple;  /**< ÖÕ¶ËÐÄÌø³¬Ê±±¶Êý0±íÊ¾ÎÞÐè¹ØÐÄ */
-    int terminal_disconnect_mode;           /**< ÖÕ¶Ë¶Ï¿ªÁ¬½ÓÄ£Ê½: 0¹Ø±ÕTCP; 1¹Ø±Õ×ª·¢ */
+    int terminal_heartbeat_cycle_multiple;  /**< ç»ˆç«¯å¿ƒè·³è¶…æ—¶å€æ•°0è¡¨ç¤ºæ— éœ€å…³å¿ƒ */
+    int terminal_disconnect_mode;           /**< ç»ˆç«¯æ–­å¼€è¿žæŽ¥æ¨¡å¼: 0å…³é—­TCP; 1å…³é—­è½¬å‘ */
 
     /**
-     * Ä¬ÈÏµ÷ÊÔ¼¶±ð
-     * 0 : ´òÓ¡³ö´íÐÅÏ¢
-     * 1 : ´òÓ¡³ö´íÐÅÏ¢ + ±¨ÎÄÈÕÖ¾
-     * 2 : ´òÓ¡³ö´íÐÅÏ¢ + ±¨ÎÄÈÕÖ¾ + µ÷ÊÔ´òÓ¡ÐÅÏ¢
+     * é»˜è®¤è°ƒè¯•çº§åˆ«
+     * 0 : æ‰“å°å‡ºé”™ä¿¡æ¯
+     * 1 : æ‰“å°å‡ºé”™ä¿¡æ¯ + æŠ¥æ–‡æ—¥å¿—
+     * 2 : æ‰“å°å‡ºé”™ä¿¡æ¯ + æŠ¥æ–‡æ—¥å¿— + è°ƒè¯•æ‰“å°ä¿¡æ¯
      */
     int default_debug_level;
 } pcfg_t;
@@ -69,10 +69,10 @@ typedef struct
 {
     struct ListNode node;
     void *listen;
-    conn_type_e type;   //Àà±ð
+    conn_type_e type;   //ç±»åˆ«
 } slist_t;
 
-/** ÔËÐÐ²ÎÊý */
+/** è¿è¡Œå‚æ•° */
 typedef struct
 {
     pcfg_t pcfg;
@@ -83,27 +83,27 @@ typedef struct
     void *front_socket;
 } prun_t;
 
-/** Á¬½Ó½á¹¹ */
+/** è¿žæŽ¥ç»“æž„ */
 typedef struct _connect_t
 {
     struct ListNode node;
-    void *socket;           /**< socketÁ¬½Ó¾ä±ú */
-    //void *saddr;            /**< UDPÁ¬½ÓÊ±Ê¹ÓÃstruct sockaddr_in */
-    time_t connect_time;    /**< Á¬½ÓÊ±¼ä */
-    time_t last_time;       /**< ÉÏÒ»´ÎÍ¨ÐÅÊ±¼ä */
-    time_t last_heartbeat;  /**< ÉÏÒ»´ÎÐÄÌøÊ±¼ä */
-    int heartbeat_cycle;    /**< ÐÄÌøÖÜÆÚ(µ¥Î»:s) */
+    void *socket;           /**< socketè¿žæŽ¥å¥æŸ„ */
+    //void *saddr;            /**< UDPè¿žæŽ¥æ—¶ä½¿ç”¨struct sockaddr_in */
+    time_t connect_time;    /**< è¿žæŽ¥æ—¶é—´ */
+    time_t last_time;       /**< ä¸Šä¸€æ¬¡é€šä¿¡æ—¶é—´ */
+    time_t last_heartbeat;  /**< ä¸Šä¸€æ¬¡å¿ƒè·³æ—¶é—´ */
+    int heartbeat_cycle;    /**< å¿ƒè·³å‘¨æœŸ(å•ä½:s) */
     chkfrm_t chkfrm;
-    int is_closing;         /**< ×¼±¸¹Ø±Õ */
-    addr_t u;               /**< µØÖ· */
-    struct ListNode cas;    /**< ¼¶ÁªÖÕ¶ËÁÐ±í */
-//    struct _connect_t *precon; //ÔÝÊ±²»ÓÃ
+    int is_closing;         /**< å‡†å¤‡å…³é—­ */
+    addr_t u;               /**< åœ°å€ */
+    struct ListNode cas;    /**< çº§è”ç»ˆç«¯åˆ—è¡¨ */
+//    struct _connect_t *precon; //æš‚æ—¶ä¸ç”¨
 } connect_t;
 
 typedef struct
 {
     struct ListNode node;
-    addr_t u;               /**< µØÖ· */
+    addr_t u;               /**< åœ°å€ */
 } cas_addr_t;
 
 /*-----------------------------------------------------------------------------

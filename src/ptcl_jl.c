@@ -24,7 +24,7 @@
  Section: Type Definitions
  ----------------------------------------------------------------------------*/
 #pragma pack(push, 1)
-//±¨ÎÄÍ·½á¹¹Ìå
+//æŠ¥æ–‡å¤´ç»“æ„ä½“
 typedef struct FrameJLHeaderStruct
 {
     unsigned char frameStart;       //0x68
@@ -32,38 +32,38 @@ typedef struct FrameJLHeaderStruct
     {
         struct
         {
-            unsigned short  ptclFlag    :   2   ,   //D0--D1¹æÔ¼±êÊ¾
-                                                    //D0=0¡¢D1=0£¬±íÊ¾£º½ûÓÃ£»
-                                                    //D0=1¡¢D1=0£¬±íÊ¾£º±¾¹æÔ¼Ê¹ÓÃ£»
-                                                    //D0=0»ò1¡¢D1=1£¬Îª±£Áô¡£
-                            lenDataArea :   14  ;   //D2--D15³¤¶È£¨¿ØÖÆÓò¡¢µØÖ·Óò¡¢Á´Â·ÓÃ»§Êı¾İ³¤¶È×ÜÊı£©
+            unsigned short  ptclFlag    :   2   ,   //D0--D1è§„çº¦æ ‡ç¤º
+                                                    //D0=0ã€D1=0ï¼Œè¡¨ç¤ºï¼šç¦ç”¨ï¼›
+                                                    //D0=1ã€D1=0ï¼Œè¡¨ç¤ºï¼šæœ¬è§„çº¦ä½¿ç”¨ï¼›
+                                                    //D0=0æˆ–1ã€D1=1ï¼Œä¸ºä¿ç•™ã€‚
+                            lenDataArea :   14  ;   //D2--D15é•¿åº¦ï¼ˆæ§åˆ¶åŸŸã€åœ°å€åŸŸã€é“¾è·¯ç”¨æˆ·æ•°æ®é•¿åº¦æ€»æ•°ï¼‰
         };
         unsigned short      lenArea;
     };
-    unsigned short  lenArea_;       //ÖØ¸´µÄ³¤¶ÈÓò
+    unsigned short  lenArea_;       //é‡å¤çš„é•¿åº¦åŸŸ
     unsigned char   dataAreaStart;  //0x68
     union
     {
         struct
         {
-            unsigned char   FuncCode : 4 ,  //D0--D3¿ØÖÆÓò¹¦ÄÜÂë
-                            FCV      : 1 ,  //D4Ö¡¼ÆÊıÓĞĞ§Î»
-                            FCB_ACD  : 1 ,  //D5Ö¡¼ÆÊıÎ» »òÕß ÇëÇó·ÃÎÊÎ»
-                            PRM      : 1 ,  //D6Æô¶¯±êÖ¾Î»
-                            DIR      : 1 ;  //D7´«Êä·½ÏòÎ»
+            unsigned char   FuncCode : 4 ,  //D0--D3æ§åˆ¶åŸŸåŠŸèƒ½ç 
+                            FCV      : 1 ,  //D4å¸§è®¡æ•°æœ‰æ•ˆä½
+                            FCB_ACD  : 1 ,  //D5å¸§è®¡æ•°ä½ æˆ–è€… è¯·æ±‚è®¿é—®ä½
+                            PRM      : 1 ,  //D6å¯åŠ¨æ ‡å¿—ä½
+                            DIR      : 1 ;  //D7ä¼ è¾“æ–¹å‘ä½
         };
         unsigned char ctrlCodeArea;
     };
     union
     {
-        unsigned char deviceAddr[6];//ÖÕ¶ËÂß¼­µØÖ·
+        unsigned char deviceAddr[6];//ç»ˆç«¯é€»è¾‘åœ°å€
     };
     union
     {
         struct
         {
-            unsigned char   groupAddr   :    1 ,//D0 ÖÕ¶Ë×éµØÖ·
-                            hostID      :    7 ;//D1-D7Ö÷Õ¾µØÖ·
+            unsigned char   groupAddr   :    1 ,//D0 ç»ˆç«¯ç»„åœ°å€
+                            hostID      :    7 ;//D1-D7ä¸»ç«™åœ°å€
         };
         unsigned char hostIDArea;
     };
@@ -72,11 +72,11 @@ typedef struct FrameJLHeaderStruct
     {
         struct
         {
-            unsigned char    frameSeq   :    4 ,//D0--D3Ö¡ĞòºÅ
-                                CON     :    1 ,//D4ÇëÇóÈ·ÈÏ±êÖ¾Î»
-                                FIN     :    1 ,//D5½áÊøÖ¡±êÖ¾
-                                FIR     :    1 ,//D6Ê×Ö¡±êÖ¾
-                                TPV     :    1 ;//D7Ö¡Ê±¼ä±êÇ©ÓĞĞ§Î»
+            unsigned char    frameSeq   :    4 ,//D0--D3å¸§åºå·
+                                CON     :    1 ,//D4è¯·æ±‚ç¡®è®¤æ ‡å¿—ä½
+                                FIN     :    1 ,//D5ç»“æŸå¸§æ ‡å¿—
+                                FIR     :    1 ,//D6é¦–å¸§æ ‡å¿—
+                                TPV     :    1 ;//D7å¸§æ—¶é—´æ ‡ç­¾æœ‰æ•ˆä½
         };
         unsigned char seqArea;
     };
@@ -87,8 +87,8 @@ typedef struct FrameJLHeaderStruct
 /*-----------------------------------------------------------------------------
  Section: Constant Definitions
  ----------------------------------------------------------------------------*/
-#define CHKFRAME_TIMEOUT                5   /**< ±¨ÎÄ³¬Ê±Ê±¼äÄ¬ÈÏ10Ãë  */
-#define FRAME_NO_DATA_LEN               14   /**< ÎŞÊı¾İÄÚÈİÓĞÊı¾İ±êÊ¾µÄ±¨ÎÄÍ·³¤¶È */
+#define CHKFRAME_TIMEOUT                5   /**< æŠ¥æ–‡è¶…æ—¶æ—¶é—´é»˜è®¤10ç§’  */
+#define FRAME_NO_DATA_LEN               14   /**< æ— æ•°æ®å†…å®¹æœ‰æ•°æ®æ ‡ç¤ºçš„æŠ¥æ–‡å¤´é•¿åº¦ */
 
 /* states for scanning incomming bytes from a bytestream */
 #define JL_FRAME_STATES_NULL               0    /**< no synchronisation */
@@ -105,8 +105,8 @@ typedef struct FrameJLHeaderStruct
 #define JL_FRAME_STATES_END                11   /**< wait for the 16H */
 #define JL_FRAME_STATES_COMPLETE           12   /**< complete frame */
 
-#define GB_PRPTOCOL_TYPE                0x01 /**< 2005¹æÔ¼±êÊ¶ */
-#define GW_PRPTOCOL_TYPE                0x02 /**< ¹úÍø¹æÔ¼±êÊ¶ */
+#define GB_PRPTOCOL_TYPE                0x01 /**< 2005è§„çº¦æ ‡è¯† */
+#define GW_PRPTOCOL_TYPE                0x02 /**< å›½ç½‘è§„çº¦æ ‡è¯† */
 
 /*-----------------------------------------------------------------------------
  Section: Global Variables
@@ -133,9 +133,9 @@ typedef struct FrameJLHeaderStruct
  ----------------------------------------------------------------------------*/
 /**
  ******************************************************************************
- * @brief   ¹úÍø±¨ÎÄ¼ì²â³õÊ¼»¯
- * @param[in]  *pchk         : ±¨ÎÄ¼ì²â¶ÔÏó
- * @param[in]  *pfn_frame_in : µ±ÊÕµ½ºÏ·¨±¨ÎÄºóÖ´ĞĞµÄ»Øµ÷º¯Êı
+ * @brief   å›½ç½‘æŠ¥æ–‡æ£€æµ‹åˆå§‹åŒ–
+ * @param[in]  *pchk         : æŠ¥æ–‡æ£€æµ‹å¯¹è±¡
+ * @param[in]  *pfn_frame_in : å½“æ”¶åˆ°åˆæ³•æŠ¥æ–‡åæ‰§è¡Œçš„å›è°ƒå‡½æ•°
  *
  * @return  None
  ******************************************************************************
@@ -153,11 +153,11 @@ jl_chkfrm_init(chkfrm_t *pchk,
 
 /**
  ******************************************************************************
- * @brief   ¹úÍø±¨ÎÄ¼ì²â
- * @param[in]  *pc      : Á¬½Ó¶ÔÏó(fixme : ÊÇ·ñĞèÒªÃ¿´Î´«Èë?)
- * @param[in]  *pchk    : ±¨ÎÄ¼ì²â¶ÔÏó
- * @param[in]  *rxBuf   : ÊäÈëÊı¾İ
- * @param[in]  rxLen    : ÊäÈëÊı¾İ³¤¶È
+ * @brief   å›½ç½‘æŠ¥æ–‡æ£€æµ‹
+ * @param[in]  *pc      : è¿æ¥å¯¹è±¡(fixme : æ˜¯å¦éœ€è¦æ¯æ¬¡ä¼ å…¥?)
+ * @param[in]  *pchk    : æŠ¥æ–‡æ£€æµ‹å¯¹è±¡
+ * @param[in]  *rxBuf   : è¾“å…¥æ•°æ®
+ * @param[in]  rxLen    : è¾“å…¥æ•°æ®é•¿åº¦
  *
  * @return  None
  ******************************************************************************
@@ -168,13 +168,13 @@ jl_chkfrm(void *pc,
         const unsigned char *rxBuf,
         int rxLen)
 {
-    /* Èç¹ûÒÑ¾­Íê³ÉµÄèåÔòÖØĞÂ¿ªÊ¼ */
+    /* å¦‚æœå·²ç»å®Œæˆçš„æ¡¢åˆ™é‡æ–°å¼€å§‹ */
     if (pchk->frame_state == JL_FRAME_STATES_COMPLETE)
     {
         pchk->frame_state = JL_FRAME_STATES_NULL;
     }
 
-    /* Èç¹û³¬Ê±ÔòÖØĞÂ¿ªÊ¼ */
+    /* å¦‚æœè¶…æ—¶åˆ™é‡æ–°å¼€å§‹ */
     if (((time(NULL) - pchk->update_time) > pchk->overtime)
         || ((pchk->update_time - time(NULL)) > pchk->overtime))
     {
@@ -204,12 +204,12 @@ jl_chkfrm(void *pc,
                 }
                 break;
 
-            case JL_FRAME_STATES_LEN1_1: /* ¼ì²âL1µÄµÍ×Ö½Ú */
-                pchk->frame_state = JL_FRAME_STATES_LEN1_2;/* Îª¼æÈİÖ÷Õ¾²»¼ì²â¹æÔ¼ÀàĞÍ */
+            case JL_FRAME_STATES_LEN1_1: /* æ£€æµ‹L1çš„ä½å­—èŠ‚ */
+                pchk->frame_state = JL_FRAME_STATES_LEN1_2;/* ä¸ºå…¼å®¹ä¸»ç«™ä¸æ£€æµ‹è§„çº¦ç±»å‹ */
                 pchk->dlen = ((*rxBuf & 0xFCu) >> 2u);
                 break;
 
-            case JL_FRAME_STATES_LEN1_2: /* ¼ì²âL1µÄ¸ß×Ö½Ú */
+            case JL_FRAME_STATES_LEN1_2: /* æ£€æµ‹L1çš„é«˜å­—èŠ‚ */
                 pchk->dlen += ((unsigned int)*rxBuf << 6u);
                 if (pchk->dlen > (the_max_frame_bytes - 8))
                 {
@@ -223,12 +223,12 @@ jl_chkfrm(void *pc,
                 }
                 break;
 
-            case JL_FRAME_STATES_LEN2_1: /*¼ì²âL2µÄµÍ×Ö½Ú*/
+            case JL_FRAME_STATES_LEN2_1: /*æ£€æµ‹L2çš„ä½å­—èŠ‚*/
                 pchk->frame_state = JL_FRAME_STATES_LEN2_2;
                 pchk->cfm_len = ((*rxBuf & 0xFCu) >> 2u);
                 break;
 
-            case JL_FRAME_STATES_LEN2_2: /*¼ì²âL2µÄ¸ß×Ö½Ú*/
+            case JL_FRAME_STATES_LEN2_2: /*æ£€æµ‹L2çš„é«˜å­—èŠ‚*/
                 pchk->cfm_len += ((unsigned int)*rxBuf << 6u);
                 if (pchk->cfm_len == pchk->dlen)
                 {
@@ -257,7 +257,7 @@ jl_chkfrm(void *pc,
 
             case JL_FRAME_STATES_CONTROL:
                 pchk->cs = *rxBuf;
-                pchk->frame_state = JL_FRAME_STATES_A3;/* ²»ÄÜ¼ì²â·½Ïò£¬ÒòÎª¼¶ÁªÓĞÉÏĞĞ±¨ÎÄ */
+                pchk->frame_state = JL_FRAME_STATES_A3;/* ä¸èƒ½æ£€æµ‹æ–¹å‘ï¼Œå› ä¸ºçº§è”æœ‰ä¸Šè¡ŒæŠ¥æ–‡ */
                 break;
 
             case JL_FRAME_STATES_A3:
@@ -311,12 +311,12 @@ jl_chkfrm(void *pc,
             pchk->pbuf_pos++;
         }
 
-        /* ÍêÕû±¨ÎÄ£¬µ÷ÓÃ´¦Àíº¯Êı½Ó¿Ú */
+        /* å®Œæ•´æŠ¥æ–‡ï¼Œè°ƒç”¨å¤„ç†å‡½æ•°æ¥å£ */
         if (pchk->frame_state == JL_FRAME_STATES_COMPLETE)
         {
             if (pchk->pfn_frame_in)
             {
-                pchk->pfn_frame_in(pc, pchk->pbuf, pchk->dlen + 8); //ÕâÀï´¦ÀíÒµÎñ
+                pchk->pfn_frame_in(pc, pchk->pbuf, pchk->dlen + 8); //è¿™é‡Œå¤„ç†ä¸šåŠ¡
             }
 
             free(pchk->pbuf);
@@ -332,11 +332,11 @@ jl_chkfrm(void *pc,
 
 /**
  ******************************************************************************
- * @brief   »ñÈ¡±¨ÎÄ´«Êä·½Ïò,0:Ö÷Õ¾-->ÖÕ¶Ë, 1:ÖÕ¶Ë-->Ö÷Õ¾
- * @param[in]  *p : ±¨ÎÄ»º´æ
+ * @brief   è·å–æŠ¥æ–‡ä¼ è¾“æ–¹å‘,0:ä¸»ç«™-->ç»ˆç«¯, 1:ç»ˆç«¯-->ä¸»ç«™
+ * @param[in]  *p : æŠ¥æ–‡ç¼“å­˜
  *
- * @retval  0 : Ö÷Õ¾-->ÖÕ¶Ë
- * @retval  1 : ÖÕ¶Ë-->Ö÷Õ¾
+ * @retval  0 : ä¸»ç«™-->ç»ˆç«¯
+ * @retval  1 : ç»ˆç«¯-->ä¸»ç«™
  ******************************************************************************
  */
 static int
@@ -349,8 +349,8 @@ jl_get_dir(const unsigned char* p)
 
 /**
  ******************************************************************************
- * @brief   ¸ù¾İpnfnÆ«ÒÆ»ñÈ¡fn
- * @param[in]  ÊäÈë2×Ö½Úfn
+ * @brief   æ ¹æ®pnfnåç§»è·å–fn
+ * @param[in]  è¾“å…¥2å­—èŠ‚fn
  * @retval  fn
  ******************************************************************************
  */
@@ -373,10 +373,10 @@ getPnFn(const unsigned char* pFnPn)
 
 /**
  ******************************************************************************
- * @brief   »ñÈ¡±¨ÎÄÀàĞÍ
- * @param[in]  *p : ±¨ÎÄ»º´æ
+ * @brief   è·å–æŠ¥æ–‡ç±»å‹
+ * @param[in]  *p : æŠ¥æ–‡ç¼“å­˜
  *
- * @retval  ±¨ÎÄÀàĞÍ
+ * @retval  æŠ¥æ–‡ç±»å‹
  ******************************************************************************
  */
 static func_type_e
@@ -406,11 +406,11 @@ jl_frame_type(const unsigned char* p)
 
 /**
  ******************************************************************************
- * @brief   ĞÄÌø¡¢µÇÂ½°ü»ØÓ¦
- * @param[in]  *p  : ÊäÈë±¨ÎÄ»º´æ
- * @param[in]  *po : Êä³ö±¨ÎÄ»º´æ
+ * @brief   å¿ƒè·³ã€ç™»é™†åŒ…å›åº”
+ * @param[in]  *p  : è¾“å…¥æŠ¥æ–‡ç¼“å­˜
+ * @param[in]  *po : è¾“å‡ºæŠ¥æ–‡ç¼“å­˜
  *
- * @return  Êä³ö±¨ÎÄ³¤¶È
+ * @return  è¾“å‡ºæŠ¥æ–‡é•¿åº¦
  ******************************************************************************
  */
 static int
@@ -431,14 +431,14 @@ jl_build_reply_packet(const unsigned char *p,
     psend->AFN = 0;
     psend->TPV = 0;
     psend->FIR = 1;
-    psend->FIN = 1; //µ¥Ö¡
-    psend->CON = 0; //ÔÚËùÊÕµ½µÄ±¨ÎÄÖĞ£¬CONÎ»ÖÃ¡°1¡±£¬±íÊ¾ĞèÒª¶Ô¸ÃÖ¡±¨ÎÄ½øĞĞÈ·ÈÏ£»ÖÃ¡°0¡±£¬±íÊ¾²»ĞèÒª¶Ô¸ÃÖ¡±¨ÎÄ½øĞĞÈ·ÈÏ¡£
+    psend->FIN = 1; //å•å¸§
+    psend->CON = 0; //åœ¨æ‰€æ”¶åˆ°çš„æŠ¥æ–‡ä¸­ï¼ŒCONä½ç½®â€œ1â€ï¼Œè¡¨ç¤ºéœ€è¦å¯¹è¯¥å¸§æŠ¥æ–‡è¿›è¡Œç¡®è®¤ï¼›ç½®â€œ0â€ï¼Œè¡¨ç¤ºä¸éœ€è¦å¯¹è¯¥å¸§æŠ¥æ–‡è¿›è¡Œç¡®è®¤ã€‚
     psend->frameSeq = pin->frameSeq;
     po[pos + 0] = 0x00;
     po[pos + 1] = 0x00;
     po[pos + 2] = 0x04;
     po[pos + 3] = 0x00;
-    po[pos + 4] = 0x02;   //È·ÈÏafn
+    po[pos + 4] = 0x02;   //ç¡®è®¤afn
     memcpy(&po[pos + 5], &pin[1], 4);
     po[pos + 9] = 0;
     po[pos + 10] = get_cs(po + 6, psend->lenDataArea); //cs
@@ -449,12 +449,12 @@ jl_build_reply_packet(const unsigned char *p,
 
 /**
  ******************************************************************************
- * @brief   ÖÕ¶ËµØÖ·ºÍ±¨ÎÄÖĞµÄÖÕ¶ËµØÖ·±È½Ï
- * @param[in]  *paddr : ÊäÈëÖÕ¶ËµØÖ·
- * @param[in]  *p     : ÊäÈë±¨ÎÄ
+ * @brief   ç»ˆç«¯åœ°å€å’ŒæŠ¥æ–‡ä¸­çš„ç»ˆç«¯åœ°å€æ¯”è¾ƒ
+ * @param[in]  *paddr : è¾“å…¥ç»ˆç«¯åœ°å€
+ * @param[in]  *p     : è¾“å…¥æŠ¥æ–‡
  *
- * @retval  1 : ²»ÏàÍ¬
- * @retval  0 :   ÏàÍ¬
+ * @retval  1 : ä¸ç›¸åŒ
+ * @retval  0 :   ç›¸åŒ
  ******************************************************************************
  */
 static int
@@ -468,12 +468,12 @@ jl_addr_cmp(const addr_t *paddr,
 
 /**
  ******************************************************************************
- * @brief   ´Ó±¨ÎÄÖĞÈ¡³öÖÕ¶ËµØÖ·
- * @param[in]  *paddr : ·µ»ØÖÕ¶ËµØÖ·
- * @param[in]  *p     : ÊäÈë±¨ÎÄ
+ * @brief   ä»æŠ¥æ–‡ä¸­å–å‡ºç»ˆç«¯åœ°å€
+ * @param[in]  *paddr : è¿”å›ç»ˆç«¯åœ°å€
+ * @param[in]  *p     : è¾“å…¥æŠ¥æ–‡
  *
- * @retval  1 : ²»ÏàÍ¬
- * @retval  0 :   ÏàÍ¬
+ * @retval  1 : ä¸ç›¸åŒ
+ * @retval  0 :   ç›¸åŒ
  ******************************************************************************
  */
 static void
@@ -488,10 +488,10 @@ jl_addr_get(addr_t *paddr,
 
 /**
  ******************************************************************************
- * @brief   »ñÈ¡ÖÕ¶ËµØÖ·×Ö·û´®
- * @param[in]  *paddr : ÖÕ¶ËµØÖ·
+ * @brief   è·å–ç»ˆç«¯åœ°å€å­—ç¬¦ä¸²
+ * @param[in]  *paddr : ç»ˆç«¯åœ°å€
  *
- * @retval  ÖÕ¶ËµØÖ·×Ö·û´®
+ * @retval  ç»ˆç«¯åœ°å€å­—ç¬¦ä¸²
  ******************************************************************************
  */
 static const char *
@@ -509,12 +509,12 @@ jl_addr_str(const addr_t *paddr)
 
 /**
  ******************************************************************************
- * @brief   Ö÷Õ¾MSAµØÖ·ºÍ±¨ÎÄÖĞµÄÖ÷Õ¾MSAµØÖ·±È½Ï
- * @param[in]  *paddr : ÊäÈëÖ÷Õ¾MSAµØÖ·
- * @param[in]  *p     : ÊäÈë±¨ÎÄ
+ * @brief   ä¸»ç«™MSAåœ°å€å’ŒæŠ¥æ–‡ä¸­çš„ä¸»ç«™MSAåœ°å€æ¯”è¾ƒ
+ * @param[in]  *paddr : è¾“å…¥ä¸»ç«™MSAåœ°å€
+ * @param[in]  *p     : è¾“å…¥æŠ¥æ–‡
  *
- * @retval  1 : ²»ÏàÍ¬
- * @retval  0 :   ÏàÍ¬
+ * @retval  1 : ä¸ç›¸åŒ
+ * @retval  0 :   ç›¸åŒ
  ******************************************************************************
  */
 static int
@@ -528,12 +528,12 @@ jl_msa_cmp(const addr_t *paddr,
 
 /**
  ******************************************************************************
- * @brief   ´Ó±¨ÎÄÖĞÈ¡³öÖ÷Õ¾MSAµØÖ·
- * @param[in]  *paddr : ·µ»ØÖ÷Õ¾MSAµØÖ·
- * @param[in]  *p     : ÊäÈë±¨ÎÄ
+ * @brief   ä»æŠ¥æ–‡ä¸­å–å‡ºä¸»ç«™MSAåœ°å€
+ * @param[in]  *paddr : è¿”å›ä¸»ç«™MSAåœ°å€
+ * @param[in]  *p     : è¾“å…¥æŠ¥æ–‡
  *
- * @retval  1 : ²»ÏàÍ¬
- * @retval  0 :   ÏàÍ¬
+ * @retval  1 : ä¸ç›¸åŒ
+ * @retval  0 :   ç›¸åŒ
  ******************************************************************************
  */
 static void
@@ -548,11 +548,11 @@ jl_msa_get(addr_t *paddr,
 
 /**
  ******************************************************************************
- * @brief   ÅĞ¶ÏÖ÷Õ¾·¢³öµÄMSAÊÇ·ñÓĞĞ§
- * @param[in]  *paddr : ·µ»ØÖ÷Õ¾MSAµØÖ·
+ * @brief   åˆ¤æ–­ä¸»ç«™å‘å‡ºçš„MSAæ˜¯å¦æœ‰æ•ˆ
+ * @param[in]  *paddr : è¿”å›ä¸»ç«™MSAåœ°å€
  *
- * @retval  1 : ÓĞĞ§
- * @retval  0 : ÎŞĞ§
+ * @retval  1 : æœ‰æ•ˆ
+ * @retval  0 : æ— æ•ˆ
  ******************************************************************************
  */
 static int
@@ -563,7 +563,7 @@ jl_is_msa_valid(const addr_t *paddr)
 
 static const ptcl_func_t the_jl_ptcl_func =
 {
-    "¼ªÁÖ¹æÔ¼",
+    "å‰æ—è§„çº¦",
     0,
     jl_chkfrm_init,
     jl_chkfrm,
@@ -581,8 +581,8 @@ static const ptcl_func_t the_jl_ptcl_func =
 };
 /**
  ******************************************************************************
- * @brief   »ñÈ¡¹úÍøĞ­Òé´¦Àí½Ó¿Ú
- * @retval  ¹úÍøĞ­Òé´¦Àí½Ó¿Ú
+ * @brief   è·å–å›½ç½‘åè®®å¤„ç†æ¥å£
+ * @retval  å›½ç½‘åè®®å¤„ç†æ¥å£
  ******************************************************************************
  */
 const ptcl_func_t *

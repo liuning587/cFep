@@ -30,7 +30,7 @@ static const ptcl_func_t *ptcl = NULL;
 static SEM_ID the_sem = NULL;
 static prun_t the_prun;
 int the_max_frame_bytes = 2048;
-unsigned char the_rbuf[2048]; //È«¾Ö»º´æ
+unsigned char the_rbuf[2048]; //å…¨å±€ç¼“å­˜
 
 static void
 print_ver_info(void);
@@ -47,7 +47,7 @@ wupdate_start(const char *psoftname,
 
 /**
  ******************************************************************************
- * @brief   ÏÔÊ¾ÔÚÏßÖÕ¶ËÁ¬½ÓĞÅÏ¢
+ * @brief   æ˜¾ç¤ºåœ¨çº¿ç»ˆç«¯è¿æ¥ä¿¡æ¯
  * @retval  None
  ******************************************************************************
  */
@@ -61,8 +61,8 @@ show_terminal_list_info(void)
     struct ListNode *piter_cas;
 
     printf("------------------------------------------------------------------------------\n");
-    printf("ÖÕ¶ËÁ¬½ÓÁĞ±í(TCP)\n");
-    printf("%-5s%-33s%-22s%-19s\n", "ĞòºÅ", "ÖÕ¶ËµØÖ·", "IP:port", "×îºóÍ¨ĞÅÊ±¼ä");
+    printf("ç»ˆç«¯è¿æ¥åˆ—è¡¨(TCP)\n");
+    printf("%-5s%-33s%-22s%-19s\n", "åºå·", "ç»ˆç«¯åœ°å€", "IP:port", "æœ€åé€šä¿¡æ—¶é—´");
     LIST_FOR_EACH(piter, &the_prun.terminal_tcp.node)
     {
         count++;
@@ -77,8 +77,8 @@ show_terminal_list_info(void)
         }
     }
     count = 0;
-    printf("\nÖÕ¶ËÁ¬½ÓÁĞ±í(UDP)\n");
-    printf("%-5s%-33s%-22s%-19s\n", "ĞòºÅ", "ÖÕ¶ËµØÖ·", "IP:port", "×îºóÍ¨ĞÅÊ±¼ä");
+    printf("\nç»ˆç«¯è¿æ¥åˆ—è¡¨(UDP)\n");
+    printf("%-5s%-33s%-22s%-19s\n", "åºå·", "ç»ˆç«¯åœ°å€", "IP:port", "æœ€åé€šä¿¡æ—¶é—´");
     LIST_FOR_EACH(piter, &the_prun.terminal_udp.node)
     {
         count++;
@@ -97,7 +97,7 @@ show_terminal_list_info(void)
 
 /**
  ******************************************************************************
- * @brief   ÏÔÊ¾ÔÚÏßºóÌ¨ĞÅÏ¢
+ * @brief   æ˜¾ç¤ºåœ¨çº¿åå°ä¿¡æ¯
  * @retval  None
  ******************************************************************************
  */
@@ -109,8 +109,8 @@ show_app_list_info(void)
     struct ListNode *piter;
 
     printf("-------------------------------------------------------------------\n");
-    printf("ºóÌ¨Á¬½ÓÁĞ±í\n");
-    printf("%-8s%-16s%-24s%-24s\n", "ĞòºÅ", "MSA", "IP:port", "×îºóÍ¨ĞÅÊ±¼ä");
+    printf("åå°è¿æ¥åˆ—è¡¨\n");
+    printf("%-8s%-16s%-24s%-24s\n", "åºå·", "MSA", "IP:port", "æœ€åé€šä¿¡æ—¶é—´");
     LIST_FOR_EACH(piter, &the_prun.app_tcp.node)
     {
         count++;
@@ -124,7 +124,7 @@ show_app_list_info(void)
 
 /**
  ******************************************************************************
- * @brief   ÓÃ»§ÊäÈë´¦ÀíÏß³Ì
+ * @brief   ç”¨æˆ·è¾“å…¥å¤„ç†çº¿ç¨‹
  * @retval  None
  ******************************************************************************
  */
@@ -170,7 +170,7 @@ user_input_thread(void *p)
                 continue;
 
             case '4':
-                printf("\nÇëÊäÈëµ÷ÊÔ¼¶±ğ(0~2)£¿");
+                printf("\nè¯·è¾“å…¥è°ƒè¯•çº§åˆ«(0~2)ï¼Ÿ");
                 do
                 {
                     input = getchar();
@@ -183,27 +183,27 @@ user_input_thread(void *p)
                         log_set_level(the_prun.pcfg.default_debug_level);
                         semGive(the_sem);
                     }
-                    printf("ÉèÖÃ³É¹¦!µ±Ç°µ÷ÊÔ¼¶±ğ:%d\n", the_prun.pcfg.default_debug_level);
+                    printf("è®¾ç½®æˆåŠŸ!å½“å‰è°ƒè¯•çº§åˆ«:%d\n", the_prun.pcfg.default_debug_level);
                 }
                 else
                 {
-                    printf("ÉèÖÃÊ§°Ü!µ±Ç°µ÷ÊÔ¼¶±ğ:%d\n", the_prun.pcfg.default_debug_level);
+                    printf("è®¾ç½®å¤±è´¥!å½“å‰è°ƒè¯•çº§åˆ«:%d\n", the_prun.pcfg.default_debug_level);
                 }
                 getchar();
                 continue;
 
             case '5':
                 //todo:
-                printf("\n¹¦ÄÜ´ıÍêÉÆ£¡ºóĞø¿ª·¢\n");
+                printf("\nåŠŸèƒ½å¾…å®Œå–„ï¼åç»­å¼€å‘\n");
                 continue;
 
             case '6':
                 //todo:
-                printf("\n¹¦ÄÜ´ıÍêÉÆ£¡ºóĞø¿ª·¢\n");
+                printf("\nåŠŸèƒ½å¾…å®Œå–„ï¼åç»­å¼€å‘\n");
                 continue;
 
             case '7':
-                printf("\nÈ·ÈÏ³¢ÊÔÉı¼¶[½÷É÷](Y/N)£¿");
+                printf("\nç¡®è®¤å°è¯•å‡çº§[è°¨æ…](Y/N)ï¼Ÿ");
                 do
                 {
                     input = getchar();
@@ -212,13 +212,13 @@ user_input_thread(void *p)
                 {
                     if (OK == semTake(the_sem, 100))
                     {
-                        log_print(L_ERROR, "³¢ÊÔÉı¼¶¡£¡£¡£\n");
+                        log_print(L_ERROR, "å°è¯•å‡çº§ã€‚ã€‚ã€‚\n");
                         #ifdef _WIN32
                         if (!wupdate_start("cFep",
                                 VERSION,
                                 "http://121.40.80.159/lnsoft/cFep/cFep.ini"))
                         {
-                            printf("ÒÑ¾­ÊÇ×îĞÂ°æ±¾!\n");
+                            printf("å·²ç»æ˜¯æœ€æ–°ç‰ˆæœ¬!\n");
                         }
                         #endif
                     }
@@ -228,7 +228,7 @@ user_input_thread(void *p)
                 continue;
 
             case '8':
-                printf("\nÈ·ÈÏÍË³öÂğ(Y/N)£¿");
+                printf("\nç¡®è®¤é€€å‡ºå—(Y/N)ï¼Ÿ");
                 do
                 {
                     input = getchar();
@@ -244,14 +244,14 @@ user_input_thread(void *p)
                 break;
         }
         printf("~~~~~~~~~~~~~~~~~~~\n"
-               "1. ÏÔÊ¾ÔÚÏßÖÕ¶ËÁĞ±í\n"
-               "2. ÏÔÊ¾ÔÚÏßºóÌ¨ÁĞ±í\n"
-               "3. ÏÔÊ¾°æ±¾ĞÅÏ¢\n"
-               "4. ÉèÖÃµ÷ÊÔ¼¶±ğ\n"
-               "5. ÆÁ±ÎĞÄÌø\n"
-               "6. ÌŞ³ıÖÕ¶Ë\n"
-               "7. ³¢ÊÔÉı¼¶\n"
-               "8. ÍË³ö\n"
+               "1. æ˜¾ç¤ºåœ¨çº¿ç»ˆç«¯åˆ—è¡¨\n"
+               "2. æ˜¾ç¤ºåœ¨çº¿åå°åˆ—è¡¨\n"
+               "3. æ˜¾ç¤ºç‰ˆæœ¬ä¿¡æ¯\n"
+               "4. è®¾ç½®è°ƒè¯•çº§åˆ«\n"
+               "5. å±è”½å¿ƒè·³\n"
+               "6. å‰”é™¤ç»ˆç«¯\n"
+               "7. å°è¯•å‡çº§\n"
+               "8. é€€å‡º\n"
                "~~~~~~~~~~~~~~~~~~~\n");
         socket_msleep(100u);
     }
@@ -259,9 +259,9 @@ user_input_thread(void *p)
 
 /**
  ******************************************************************************
- * @brief   ÅĞ¶ÏÊÇ·ñ´æÔÚ¼¶Áª´ÓÖÕ¶Ë
- * @param[in]  *pc   : Á¬½Ó¶ÔÏó
- * @param[in]  *addr : ´ÓÖÕ¶ËµØÖ·
+ * @brief   åˆ¤æ–­æ˜¯å¦å­˜åœ¨çº§è”ä»ç»ˆç«¯
+ * @param[in]  *pc   : è¿æ¥å¯¹è±¡
+ * @param[in]  *addr : ä»ç»ˆç«¯åœ°å€
  *
  * @retval  0
  * @retval  1
@@ -279,7 +279,7 @@ cas_exist(const connect_t *pc,
         pca = MemToObj(piter, cas_addr_t, node);
         if (!memcmp(&pca->u, addr, sizeof(addr_t)))
         {
-            return 1; //ÒÑ´æÔÚ
+            return 1; //å·²å­˜åœ¨
         }
     }
 
@@ -288,9 +288,9 @@ cas_exist(const connect_t *pc,
 
 /**
  ******************************************************************************
- * @brief   ĞÂÔöÒ»¸ö´ÓÖÕ¶Ë
- * @param[in]  *pc   : Á¬½Ó¶ÔÏó
- * @param[in]  *addr : ´ÓÖÕ¶ËµØÖ·
+ * @brief   æ–°å¢ä¸€ä¸ªä»ç»ˆç«¯
+ * @param[in]  *pc   : è¿æ¥å¯¹è±¡
+ * @param[in]  *addr : ä»ç»ˆç«¯åœ°å€
  *
  * @return  None
  ******************************************************************************
@@ -315,9 +315,9 @@ cas_add(connect_t *pc,
 
 /**
  ******************************************************************************
- * @brief   É¾³ıÒ»¸ö´ÓÖÕ¶Ë
- * @param[in]  *pc   : Á¬½Ó¶ÔÏó
- * @param[in]  *addr : ´ÓÖÕ¶ËµØÖ·
+ * @brief   åˆ é™¤ä¸€ä¸ªä»ç»ˆç«¯
+ * @param[in]  *pc   : è¿æ¥å¯¹è±¡
+ * @param[in]  *addr : ä»ç»ˆç«¯åœ°å€
  *
  * @return  None
  ******************************************************************************
@@ -343,8 +343,8 @@ cas_del(connect_t *pc,
 
 /**
  ******************************************************************************
- * @brief   É¾³ıÒ»¸öÁ¬½Ó¶ÔÏó
- * @param[in]  *pc : ´ıÉ¾³ıµÄÁ¬½Ó¶ÔÏó
+ * @brief   åˆ é™¤ä¸€ä¸ªè¿æ¥å¯¹è±¡
+ * @param[in]  *pc : å¾…åˆ é™¤çš„è¿æ¥å¯¹è±¡
  *
  * @return  None
  ******************************************************************************
@@ -362,7 +362,7 @@ delete_pc(connect_t *pc)
         free(pc->chkfrm.pbuf);
     }
 
-    LIST_FOR_EACH_SAFE(piter, ptmp, &pc->cas)  //ÊÍ·Å¼¶Áª´ÓÖÕ¶Ë
+    LIST_FOR_EACH_SAFE(piter, ptmp, &pc->cas)  //é‡Šæ”¾çº§è”ä»ç»ˆç«¯
     {
         pca = MemToObj(piter, cas_addr_t, node);
         ListDelNode(&pca->node);
@@ -374,9 +374,9 @@ delete_pc(connect_t *pc)
 
 /**
  ******************************************************************************
- * @brief   ¸øÖÕ¶Ë»Ø¸´±¨ÎÄ
- * @param[in]  *pc : Á¬½Ó¶ÔÏó
- * @param[in]  *ph : ÊäÈë±¨ÎÄ
+ * @brief   ç»™ç»ˆç«¯å›å¤æŠ¥æ–‡
+ * @param[in]  *pc : è¿æ¥å¯¹è±¡
+ * @param[in]  *ph : è¾“å…¥æŠ¥æ–‡
  *
  * @return  None
  ******************************************************************************
@@ -390,7 +390,7 @@ build_reply_packet(connect_t *pc,
     sendlen = ptcl->pfn_build_reply_packet(ph, the_rbuf);
     if (0 > socket_send(pc->socket, the_rbuf, sendlen))
     {
-        pc->is_closing = 1; //·¢ËÍÊ§°ÜĞèÒª¹Ø±Õ
+        pc->is_closing = 1; //å‘é€å¤±è´¥éœ€è¦å…³é—­
     }
     else
     {
@@ -400,9 +400,9 @@ build_reply_packet(connect_t *pc,
 
 /**
  ******************************************************************************
- * @brief   ¸øºóÌ¨»Ø¸´ÊÇ·ñÔÚÏß±¨ÎÄ
- * @param[in]  *pc : Á¬½Ó¶ÔÏó
- * @param[in]  *ph : ÊäÈë±¨ÎÄ
+ * @brief   ç»™åå°å›å¤æ˜¯å¦åœ¨çº¿æŠ¥æ–‡
+ * @param[in]  *pc : è¿æ¥å¯¹è±¡
+ * @param[in]  *ph : è¾“å…¥æŠ¥æ–‡
  *
  * @return  None
  ******************************************************************************
@@ -451,7 +451,7 @@ build_online_packet(connect_t *pc,
     sendlen = ptcl->pfn_build_online_packet(ph, the_rbuf, sec);
     if (0 > socket_send(pc->socket, the_rbuf, sendlen))
     {
-        pc->is_closing = 1; //·¢ËÍÊ§°ÜĞèÒª¹Ø±Õ
+        pc->is_closing = 1; //å‘é€å¤±è´¥éœ€è¦å…³é—­
     }
     else
     {
@@ -461,10 +461,10 @@ build_online_packet(connect_t *pc,
 
 /**
  ******************************************************************************
- * @brief   ÖÕ¶ËÒµÎñ±¨ÎÄ´¦Àí»Øµ÷º¯Êı
- * @param[in]  *pc  : Á¬½Ó
- * @param[in]  *pbuf: ±¨ÎÄ»º´æÇø
- * @param[in]  len  : ³¤¶È
+ * @brief   ç»ˆç«¯ä¸šåŠ¡æŠ¥æ–‡å¤„ç†å›è°ƒå‡½æ•°
+ * @param[in]  *pc  : è¿æ¥
+ * @param[in]  *pbuf: æŠ¥æ–‡ç¼“å­˜åŒº
+ * @param[in]  len  : é•¿åº¦
  *
  * @return  None
  ******************************************************************************
@@ -483,7 +483,7 @@ terminal_frame_in_cb(void *p,
     struct ListNode *piter;
     connect_t *pc = (connect_t *)p;
 
-    if ((the_prun.pcfg.ptcl_type != 4) && !ptcl->pfn_get_dir(pbuf))    //0Ö÷Õ¾-->ÖÕ¶Ë   1ÖÕ¶Ë-->Ö÷Õ¾
+    if ((the_prun.pcfg.ptcl_type != 4) && !ptcl->pfn_get_dir(pbuf))    //0ä¸»ç«™-->ç»ˆç«¯   1ç»ˆç«¯-->ä¸»ç«™
     {
         return;
     }
@@ -497,7 +497,7 @@ terminal_frame_in_cb(void *p,
     {
         log_buf(L_NORMAL, "T: ", pbuf, len);
     }
-    ptcl->pfn_addr_get(&addr, pbuf); //»ñÈ¡ÖÕ¶ËµØÖ·
+    ptcl->pfn_addr_get(&addr, pbuf); //è·å–ç»ˆç«¯åœ°å€
 
     switch (ptcl->pfn_frame_type(pbuf))
     {
@@ -506,7 +506,7 @@ terminal_frame_in_cb(void *p,
             {
                 if (!mem_equal(&pc->u, 0x00, sizeof(pc->u)))
                 {
-                    ptcl->pfn_addr_get(&pc->u, pbuf); //Ê×´ÎÊÕµ½µÇÂ½°ü
+                    ptcl->pfn_addr_get(&pc->u, pbuf); //é¦–æ¬¡æ”¶åˆ°ç™»é™†åŒ…
                 }
                 else
                 {
@@ -520,7 +520,7 @@ terminal_frame_in_cb(void *p,
 
             if (!the_prun.pcfg.support_comm_terminal)
             {
-                /* ·ÀÖ¹ÖÕ¶ËÖØ¸´µÇÂ¼ */
+                /* é˜²æ­¢ç»ˆç«¯é‡å¤ç™»å½• */
                 struct ListNode *node[] = {
                         &the_prun.terminal_tcp.node,
                         &the_prun.terminal_udp.node};
@@ -531,19 +531,19 @@ terminal_frame_in_cb(void *p,
                         pct = MemToObj(piter, connect_t, node);
                         if ((pct != pc) && (!ptcl->pfn_addr_cmp(&pct->u, pbuf)))
                         {
-                            log_print(L_DEBUG, "ÖÕ¶Ë[%s]ÖØ¸´µÇÂ¼!\n",
+                            log_print(L_DEBUG, "ç»ˆç«¯[%s]é‡å¤ç™»å½•!\n",
                                     ptcl->pfn_addr_str(&pc->u));
                             piter = piter->pPrevNode;
                             delete_pc(pct);
                         }
                         else if (pct != pc)
                         {
-                            cas_del(pct, &addr); //±éÀúÉ¾³ıÖØ¸´¼¶Áª´ÓÖÕ¶Ë
+                            cas_del(pct, &addr); //éå†åˆ é™¤é‡å¤çº§è”ä»ç»ˆç«¯
                         }
                     }
                 }
             }
-            log_print(L_DEBUG, "ÖÕ¶Ë[%s]µÇÂ¼\n", ptcl->pfn_addr_str(&pc->u));
+            log_print(L_DEBUG, "ç»ˆç«¯[%s]ç™»å½•\n", ptcl->pfn_addr_str(&pc->u));
             build_reply_packet(pc, pbuf);
             return;
 
@@ -553,15 +553,15 @@ terminal_frame_in_cb(void *p,
                 if ((the_prun.pcfg.support_cas_link && cas_exist(pc, &addr))
                         || !ptcl->pfn_addr_cmp(&pc->u, pbuf))
                 {
-                    log_print(L_DEBUG, "ÖÕ¶Ë[%s]ĞÄÌø\n",
+                    log_print(L_DEBUG, "ç»ˆç«¯[%s]å¿ƒè·³\n",
                             ptcl->pfn_addr_str(&pc->u));
                     build_reply_packet(pc, pbuf);
                 }
                 else
                 {
-                    log_print(L_DEBUG, "ÖÕ¶Ë[%s]µÇÂ¼µØÖ·ÓëĞÄÌøµØÖ·²»Æ¥Åä!\n",
+                    log_print(L_DEBUG, "ç»ˆç«¯[%s]ç™»å½•åœ°å€ä¸å¿ƒè·³åœ°å€ä¸åŒ¹é…!\n",
                             ptcl->pfn_addr_str(&pc->u));
-                    //¿ÉÑ¡¹Ø±ÕÁ¬½Ó
+                    //å¯é€‰å…³é—­è¿æ¥
                     pc->is_closing = 1;
                 }
                 return;
@@ -569,11 +569,11 @@ terminal_frame_in_cb(void *p,
             break;
 
         case LINK_EXIT:
-            log_print(L_DEBUG, "ÖÕ¶Ë[%s]ÍË³ö\n", ptcl->pfn_addr_str(&pc->u));
+            log_print(L_DEBUG, "ç»ˆç«¯[%s]é€€å‡º\n", ptcl->pfn_addr_str(&pc->u));
             build_reply_packet(pc, pbuf);
             if (the_prun.pcfg.support_cas_link && cas_exist(pc, &addr))
             {
-                cas_del(pc, &addr); //¼¶Áª´ÓÖÕ¶Ë²»¹Ø±Õsocket
+                cas_del(pc, &addr); //çº§è”ä»ç»ˆç«¯ä¸å…³é—­socket
             }
             else
             {
@@ -585,41 +585,41 @@ terminal_frame_in_cb(void *p,
             break;
     }
 
-    //47Ğ­Òé²»ÅĞ¶ÏµØÖ·
+    //47åè®®ä¸åˆ¤æ–­åœ°å€
     if ((the_prun.pcfg.ptcl_type != 4) && ptcl->pfn_addr_cmp(&pc->u, pbuf))
     {
         if (the_prun.pcfg.support_cas)
         {
-            cas_add(pc, &addr); //Ìí¼Ó¼¶ÁªÖÕ¶Ë
+            cas_add(pc, &addr); //æ·»åŠ çº§è”ç»ˆç«¯
         }
         else
         {
-            log_print(L_DEBUG, "ÖÕ¶Ë[%s]±¨ÎÄµØÖ·ÓëµÇÂ¼µØÖ·²»Æ¥Åä!\n",
+            log_print(L_DEBUG, "ç»ˆç«¯[%s]æŠ¥æ–‡åœ°å€ä¸ç™»å½•åœ°å€ä¸åŒ¹é…!\n",
                     ptcl->pfn_addr_str(&pc->u));
-            pc->is_closing = 1; //ÊÇ·ñ¿ÉÒÔÖ±½Ó¹Ø±ÕÁ¬½Ó?
+            pc->is_closing = 1; //æ˜¯å¦å¯ä»¥ç›´æ¥å…³é—­è¿æ¥?
             return;
         }
     }
-    /* »ñÈ¡msa */
+    /* è·å–msa */
     ptcl->pfn_msa_get(&msa, pbuf);
 
     LIST_FOR_EACH_SAFE(piter, ptmp, &the_prun.app_tcp.node)
     {
         pct = MemToObj(piter, connect_t, node);
-        /* Ö»ÒªºóÌ¨Á¬½Ó¾ÍÉÏ±¨£¬²»¹ÜÓĞÃ»ÓĞ¼ÇÂ¼MSA */
+        /* åªè¦åå°è¿æ¥å°±ä¸ŠæŠ¥ï¼Œä¸ç®¡æœ‰æ²¡æœ‰è®°å½•MSA */
         /**
-         * 1. ÖÕ¶ËÖ÷¶¯ÉÏ±¨msa==0,ËùÓĞºóÌ¨¶¼×ª·¢
-         * 2. ºóÌ¨msaÎªÆ¥ÅäÒª×ª·¢
-         * 3. 47Ğ­Òé×Ô¶¯·¢ËÍ
+         * 1. ç»ˆç«¯ä¸»åŠ¨ä¸ŠæŠ¥msa==0,æ‰€æœ‰åå°éƒ½è½¬å‘
+         * 2. åå°msaä¸ºåŒ¹é…è¦è½¬å‘
+         * 3. 47åè®®è‡ªåŠ¨å‘é€
          */
         if ((the_prun.pcfg.ptcl_type == 4)
                 || !ptcl->pfn_is_msa_valid(&msa)
                 || !ptcl->pfn_msa_cmp(&pct->u, pbuf))
         {
             sendlen = socket_send(pct->socket, pbuf, len);
-            if (sendlen < 0)    //×ª·¢³ö´í´¦Àí
+            if (sendlen < 0)    //è½¬å‘å‡ºé”™å¤„ç†
             {
-                log_print(L_DEBUG, "·¢ËÍÊ§°Ü!\n");
+                log_print(L_DEBUG, "å‘é€å¤±è´¥!\n");
                 piter = piter->pPrevNode;
                 delete_pc(pct);
             }
@@ -629,10 +629,10 @@ terminal_frame_in_cb(void *p,
 
 /**
  ******************************************************************************
- * @brief   ºóÌ¨ÒµÎñ±¨ÎÄ´¦Àí»Øµ÷º¯Êı
- * @param[in]  *pc  : Á¬½Ó
- * @param[in]  *pbuf: ±¨ÎÄ»º´æÇø
- * @param[in]  len  : ³¤¶È
+ * @brief   åå°ä¸šåŠ¡æŠ¥æ–‡å¤„ç†å›è°ƒå‡½æ•°
+ * @param[in]  *pc  : è¿æ¥
+ * @param[in]  *pbuf: æŠ¥æ–‡ç¼“å­˜åŒº
+ * @param[in]  len  : é•¿åº¦
  *
  * @return  None
  ******************************************************************************
@@ -674,12 +674,12 @@ app_frame_in_cb(void *p,
         }
     }
 
-    if ((the_prun.pcfg.ptcl_type != 4) && ptcl->pfn_get_dir(pbuf))    //0Ö÷Õ¾-->ÖÕ¶Ë   1ÖÕ¶Ë-->Ö÷Õ¾
+    if ((the_prun.pcfg.ptcl_type != 4) && ptcl->pfn_get_dir(pbuf))    //0ä¸»ç«™-->ç»ˆç«¯   1ç»ˆç«¯-->ä¸»ç«™
     {
         return;
     }
 
-    ptcl->pfn_msa_get(&pc->u, pbuf);    //¸üĞÂÖ÷Õ¾µØÖ·
+    ptcl->pfn_msa_get(&pc->u, pbuf);    //æ›´æ–°ä¸»ç«™åœ°å€
     pc->last_time = time(NULL);
 
 //    if (ptcl->support_app_heart)
@@ -708,7 +708,7 @@ app_frame_in_cb(void *p,
             {
                 if (the_prun.pcfg.support_compress)
                 {
-                    len = EnData((BYTE *)pbuf, len, EXE_COMPRESS_NEW);  //¼ÓÃÜ
+                    len = EnData((BYTE *)pbuf, len, EXE_COMPRESS_NEW);  //åŠ å¯†
                     sendlen = socket_send(pct->socket, SendBuf, len);
                     log_buf(L_DEBUG, "SM: ", SendBuf, len);
                 }
@@ -717,7 +717,7 @@ app_frame_in_cb(void *p,
                     sendlen = socket_send(pct->socket, pbuf, len);
                 }
                 if (sendlen < 0)
-                {   //×ª·¢³ö´í
+                {   //è½¬å‘å‡ºé”™
                     piter = piter->pPrevNode;
                     delete_pc(pct);
                 }
@@ -728,7 +728,7 @@ app_frame_in_cb(void *p,
 
 /**
  ******************************************************************************
- * @brief   ¼ì²âTCP¶Ë¿Ú
+ * @brief   æ£€æµ‹TCPç«¯å£
  * @return  None
  ******************************************************************************
  */
@@ -739,7 +739,7 @@ tcp_accept(slist_t *pslist)
 
     while ((conn_fd = socket_accept(pslist->listen)) != NULL)
     {
-        //´´½¨·şÎñÆ÷¶Ë¿ÚĞÂµÄÁ¬½Ó
+        //åˆ›å»ºæœåŠ¡å™¨ç«¯å£æ–°çš„è¿æ¥
         connect_t *pc = malloc(sizeof(connect_t));
         if (pc)
         {
@@ -761,7 +761,7 @@ tcp_accept(slist_t *pslist)
                     continue;   //goto while
             }
             memset(&pc->u, 0x00, sizeof(pc->u));
-            ListAddTail(&pc->node, &pslist->node); //¼ÓÈëÁ´±í
+            ListAddTail(&pc->node, &pslist->node); //åŠ å…¥é“¾è¡¨
         }
         else
         {
@@ -773,7 +773,7 @@ tcp_accept(slist_t *pslist)
 
 /**
  ******************************************************************************
- * @brief   ¼ì²âTCPÊı¾İ
+ * @brief   æ£€æµ‹TCPæ•°æ®
  * @return  None
  ******************************************************************************
  */
@@ -795,7 +795,7 @@ tcp_read(slist_t *pslist)
         }
         if (len < 0)
         {
-            log_print(L_DEBUG, "addr:%s ¶ÁÈ¡Ê§°Ü!\n", ptcl->pfn_addr_str(&pc->u));
+            log_print(L_DEBUG, "addr:%s è¯»å–å¤±è´¥!\n", ptcl->pfn_addr_str(&pc->u));
             piter = piter->pPrevNode;
             delete_pc(pc);
         }
@@ -804,7 +804,7 @@ tcp_read(slist_t *pslist)
 
 /**
  ******************************************************************************
- * @brief   ¼ì²âUDPÊı¾İ
+ * @brief   æ£€æµ‹UDPæ•°æ®
  * @return  None
  ******************************************************************************
  */
@@ -823,7 +823,7 @@ udp_read(slist_t *pslist)
     {
         if (!ip || !port) continue;
         pc = NULL;
-        //Ñ°ÕÒÏàÍ¬µÄIP:port£¬´æÔÚÔòchkfrm
+        //å¯»æ‰¾ç›¸åŒçš„IP:portï¼Œå­˜åœ¨åˆ™chkfrm
         LIST_FOR_EACH(piter, &pslist->node)
         {
             pc = MemToObj(piter, connect_t, node);
@@ -837,7 +837,7 @@ udp_read(slist_t *pslist)
 
         if (!pc)
         {
-            //Èô²»´æÔÚ, ÏÈÔö¼Ó½Úµã, ÔÙchkfrm
+            //è‹¥ä¸å­˜åœ¨, å…ˆå¢åŠ èŠ‚ç‚¹, å†chkfrm
             pc = malloc(sizeof(connect_t));
             if (pc)
             {
@@ -848,7 +848,7 @@ udp_read(slist_t *pslist)
                 ptcl->pfn_chkfrm_init(&pc->chkfrm, terminal_frame_in_cb);
                 memset(&pc->u, 0x00, sizeof(pc->u));
                 InitListHead(&pc->cas);
-                ListAddTail(&pc->node, &pslist->node); //¼ÓÈëÁ´±í
+                ListAddTail(&pc->node, &pslist->node); //åŠ å…¥é“¾è¡¨
             }
         }
 
@@ -865,7 +865,7 @@ udp_read(slist_t *pslist)
 
 /**
  ******************************************************************************
- * @brief   Î¬»¤ÈÎÎñ
+ * @brief   ç»´æŠ¤ä»»åŠ¡
  * @retval  None
  ******************************************************************************
  */
@@ -882,11 +882,11 @@ daemo_task(slist_t *pslist)
         pc = MemToObj(piter, connect_t, node);
 
         if (((the_prun.pcfg.timeout * 60) < abs(pc->last_time - cur_time))
-                /* Á¬½Ó³É¹¦1·ÖÖÓÎ´·¢ËÍÊı¾İ, ÌŞ³ı */
+                /* è¿æ¥æˆåŠŸ1åˆ†é’Ÿæœªå‘é€æ•°æ®, å‰”é™¤ */
                 || ((60 < abs(pc->last_time - cur_time) && (pc->last_time == pc->connect_time)))
                 || pc->is_closing)
         {
-            log_print(L_DEBUG, "addr:%s ³¬Ê±!\n", ptcl->pfn_addr_str(&pc->u));
+            log_print(L_DEBUG, "addr:%s è¶…æ—¶!\n", ptcl->pfn_addr_str(&pc->u));
             piter = piter->pPrevNode;
             delete_pc(pc);
         }
@@ -896,7 +896,7 @@ daemo_task(slist_t *pslist)
 #ifdef _WIN32
 /**
  ******************************************************************************
- * @brief   Ä¬ÈÏÍË³ö´¦Àí·½·¨
+ * @brief   é»˜è®¤é€€å‡ºå¤„ç†æ–¹æ³•
  * @return  None
  ******************************************************************************
  */
@@ -912,7 +912,7 @@ default_on_exit(void)
             &the_prun.terminal_tcp.node,
             &the_prun.terminal_udp.node};
 
-    log_print(L_ERROR, "cFepÍË³ö´¦Àí,¹Ø±ÕËùÓĞÁ¬½Ó\n");
+    log_print(L_ERROR, "cFepé€€å‡ºå¤„ç†,å…³é—­æ‰€æœ‰è¿æ¥\n");
 
     for (i = 0; i < ARRAY_SIZE(node); i++)
     {
@@ -931,7 +931,7 @@ default_on_exit(void)
 
 /**
  ******************************************************************************
- * @brief   Ç°ÖÃÍ¨ĞÅÏß³Ì
+ * @brief   å‰ç½®é€šä¿¡çº¿ç¨‹
  * @retval  None
  ******************************************************************************
  */
@@ -959,7 +959,7 @@ front_thread(void *p)
 
 /**
  ******************************************************************************
- * @brief   Ç°ÖÃÊı¾İ½ÓÊÕ
+ * @brief   å‰ç½®æ•°æ®æ¥æ”¶
  * @retval  None
  ******************************************************************************
  */
@@ -980,11 +980,11 @@ front_recv(void)
             LIST_FOR_EACH_SAFE(piter, ptmp, &the_prun.app_tcp.node)
             {
                 pct = MemToObj(piter, connect_t, node);
-                /* Ö»ÒªºóÌ¨Á¬½Ó¾ÍÉÏ±¨£¬²»¹ÜÓĞÃ»ÓĞ¼ÇÂ¼MSA */
+                /* åªè¦åå°è¿æ¥å°±ä¸ŠæŠ¥ï¼Œä¸ç®¡æœ‰æ²¡æœ‰è®°å½•MSA */
                 sendlen = socket_send(pct->socket, the_rbuf, len);
-                if (sendlen < 0)    //×ª·¢³ö´í´¦Àí
+                if (sendlen < 0)    //è½¬å‘å‡ºé”™å¤„ç†
                 {
-                    log_print(L_DEBUG, "Ç°ÖÃ×ª·¢APPÊ§°Ü!\n");
+                    log_print(L_DEBUG, "å‰ç½®è½¬å‘APPå¤±è´¥!\n");
                     piter = piter->pPrevNode;
                     delete_pc(pct);
                 }
@@ -1005,7 +1005,7 @@ front_recv(void)
 
 /**
  ******************************************************************************
- * @brief   ´òÓ¡°æ±¾ĞÅÏ¢
+ * @brief   æ‰“å°ç‰ˆæœ¬ä¿¡æ¯
  * @return  None
  ******************************************************************************
  */
@@ -1014,20 +1014,20 @@ print_ver_info(void)
 {
     log_print(L_ERROR, "*****************************************************\n");
     log_print(L_ERROR, "SanXing cFep [Version %s] Author : LiuNing\n", VERSION);
-    log_print(L_ERROR, "Ğ­ÒéÀàĞÍ       : %s\n", ptcl ? ptcl->pname : "Î´Öª!");
+    log_print(L_ERROR, "åè®®ç±»å‹       : %s\n", ptcl ? ptcl->pname : "æœªçŸ¥!");
     if (the_prun.pcfg.support_front)
     {
-        log_print(L_ERROR, "Ç°ÖÃÍ¨ĞÅ       : %s:%d%s\n", the_prun.pcfg.front_ip, the_prun.pcfg.front_tcp_port, the_prun.front_socket > 0 ? " OK": "");
-        log_print(L_ERROR, "Ç°ÖÃ³¬Ê±       : %d(us)\n", the_prun.pcfg.front_timeout);
+        log_print(L_ERROR, "å‰ç½®é€šä¿¡       : %s:%d%s\n", the_prun.pcfg.front_ip, the_prun.pcfg.front_tcp_port, the_prun.front_socket > 0 ? " OK": "");
+        log_print(L_ERROR, "å‰ç½®è¶…æ—¶       : %d(us)\n", the_prun.pcfg.front_timeout);
     }
-    log_print(L_ERROR, "ºóÌ¨TCPµÇÂ¼¶Ë¿Ú: %d\n", the_prun.pcfg.app_tcp_port);
-    log_print(L_ERROR, "ÖÕ¶ËTCPµÇÂ¼¶Ë¿Ú: %d\n", the_prun.pcfg.terminal_tcp_port);
-    log_print(L_ERROR, "ÖÕ¶ËUDPµÇÂ¼¶Ë¿Ú: %d\n", the_prun.pcfg.terminal_udp_port);
-//    log_print(L_ERROR, "TCPÁ¬½Ó³¬Ê±Ê±¼ä:%d·ÖÖÓ\n", the_prun.pcfg.timeout);
-    log_print(L_ERROR, "±¨ÎÄ×î´ó×Ö½ÚÊı : %d\n", the_prun.pcfg.max_frame_bytes);
-    log_print(L_ERROR, "ÖÕ¶ËÖØ¸´ÉÏÏß   : %s\n", the_prun.pcfg.support_comm_terminal ? "ÊÇ" : "·ñ");
-    log_print(L_ERROR, "cFepÎ¬»¤ĞÄÌø   : %s\n", the_prun.pcfg.is_cfep_reply_heart ? "ÊÇ" : "·ñ");
-    log_print(L_ERROR, "µ÷ÊÔ¼¶±ğ       : %d\n", the_prun.pcfg.default_debug_level);
+    log_print(L_ERROR, "åå°TCPç™»å½•ç«¯å£: %d\n", the_prun.pcfg.app_tcp_port);
+    log_print(L_ERROR, "ç»ˆç«¯TCPç™»å½•ç«¯å£: %d\n", the_prun.pcfg.terminal_tcp_port);
+    log_print(L_ERROR, "ç»ˆç«¯UDPç™»å½•ç«¯å£: %d\n", the_prun.pcfg.terminal_udp_port);
+//    log_print(L_ERROR, "TCPè¿æ¥è¶…æ—¶æ—¶é—´:%dåˆ†é’Ÿ\n", the_prun.pcfg.timeout);
+    log_print(L_ERROR, "æŠ¥æ–‡æœ€å¤§å­—èŠ‚æ•° : %d\n", the_prun.pcfg.max_frame_bytes);
+    log_print(L_ERROR, "ç»ˆç«¯é‡å¤ä¸Šçº¿   : %s\n", the_prun.pcfg.support_comm_terminal ? "æ˜¯" : "å¦");
+    log_print(L_ERROR, "cFepç»´æŠ¤å¿ƒè·³   : %s\n", the_prun.pcfg.is_cfep_reply_heart ? "æ˜¯" : "å¦");
+    log_print(L_ERROR, "è°ƒè¯•çº§åˆ«       : %d\n", the_prun.pcfg.default_debug_level);
     log_print(L_ERROR, "*****************************************************\n");
     log_print(L_ERROR, "* WARNING : DO NOT DRAG THE RIGHT BAR WHEN LOGGING  *\n");
     log_print(L_ERROR, "*           IT WILL BLOCK THE APPLICATION WORKING   *\n");
@@ -1036,7 +1036,7 @@ print_ver_info(void)
 
 /**
  ******************************************************************************
- * @brief   Ö÷º¯Êı
+ * @brief   ä¸»å‡½æ•°
  * @param[in]  None
  * @param[out] None
  * @retval     None
@@ -1046,17 +1046,17 @@ int main(int argc, char **argv)
 {
     int count = 0;
 
-    /* 1. Êı¾İ½á¹¹³õÊ¼»¯ */
+    /* 1. æ•°æ®ç»“æ„åˆå§‹åŒ– */
     memset(&the_prun, 0x00, sizeof(the_prun));
     InitListHead(&the_prun.app_tcp.node);
     InitListHead(&the_prun.terminal_tcp.node);
     InitListHead(&the_prun.terminal_udp.node);
     the_prun.front_socket = NULL;
 
-    /* 2. ²ÎÊı³õÊ¼»¯ */
+    /* 2. å‚æ•°åˆå§‹åŒ– */
     if (ini_get_info(&the_prun.pcfg))
     {
-        fprintf(stderr, "´ÓÅäÖÃÎÄ¼ş»ñÈ¡ÅäÖÃÊ§°Ü!Çë¼ì²éÅäÖÃÎÄ¼ş\n");
+        fprintf(stderr, "ä»é…ç½®æ–‡ä»¶è·å–é…ç½®å¤±è´¥!è¯·æ£€æŸ¥é…ç½®æ–‡ä»¶\n");
         getchar();
         goto __cFep_end;
     }
@@ -1066,19 +1066,19 @@ int main(int argc, char **argv)
 
     switch (the_prun.pcfg.ptcl_type)
     {
-        case 0: /* ¹úÍø */
+        case 0: /* å›½ç½‘ */
             ptcl = gw_ptcl_func_get();
             break;
 
-        case 1: /* ÄÏÍø */
+        case 1: /* å—ç½‘ */
             ptcl = nw_ptcl_func_get();
             break;
 
-        case 2: /* ¹ã¶«¡¢Õã½­¹æÔ¼ */
+        case 2: /* å¹¿ä¸œã€æµ™æ±Ÿè§„çº¦ */
             ptcl = zj_ptcl_func_get();
             break;
 
-        case 3: /* ¼ªÁÖ¹æÔ¼ */
+        case 3: /* å‰æ—è§„çº¦ */
             ptcl = jl_ptcl_func_get();
             break;
 
@@ -1086,7 +1086,7 @@ int main(int argc, char **argv)
             ptcl = p47_ptcl_func_get();
             break;
 
-        case 5: /* 698²âÊÔ */
+        case 5: /* 698æµ‹è¯• */
             ptcl = p698_ptcl_func_get();
             break;
 
@@ -1096,48 +1096,48 @@ int main(int argc, char **argv)
 
     if (!ptcl)
     {
-        fprintf(stderr, "ÎŞ·¨»ñÈ¡Ğ­Òé´¦Àí½Ó¿Ú!\n");
+        fprintf(stderr, "æ— æ³•è·å–åè®®å¤„ç†æ¥å£!\n");
         goto __cFep_end;
     }
 
-    /* 3. socket³õÊ¼»¯ */
+    /* 3. socketåˆå§‹åŒ– */
     if (socket_init())
     {
-        fprintf(stderr, "socket³õÊ¼»¯³ö´í!\n");
+        fprintf(stderr, "socketåˆå§‹åŒ–å‡ºé”™!\n");
         goto __cFep_end;
     }
 
-    /* 4. Æô¶¯app¶Ë¿Ú¼àÌı */
+    /* 4. å¯åŠ¨appç«¯å£ç›‘å¬ */
     the_prun.app_tcp.type = E_TYPE_APP;
     the_prun.app_tcp.listen = socket_listen(the_prun.pcfg.app_tcp_port, E_SOCKET_TCP);
     if (the_prun.app_tcp.listen == NULL)
     {
-        fprintf(stderr, "¼àÌıºóÌ¨µÇÂ¼¶Ë¿Ú:%dÊ§°Ü!\n", the_prun.pcfg.app_tcp_port);
+        fprintf(stderr, "ç›‘å¬åå°ç™»å½•ç«¯å£:%då¤±è´¥!\n", the_prun.pcfg.app_tcp_port);
         goto __cFep_end;
     }
 
-    /* 5. Æô¶¯terminal¶Ë¿Ú¼àÌı */
+    /* 5. å¯åŠ¨terminalç«¯å£ç›‘å¬ */
     the_prun.terminal_tcp.type = E_TYPE_TERMINAL;
     the_prun.terminal_tcp.listen = socket_listen(the_prun.pcfg.terminal_tcp_port, E_SOCKET_TCP);
     if (the_prun.terminal_tcp.listen == NULL)
     {
-        fprintf(stderr, "¼àÌıÖÕ¶ËµÇÂ¼¶Ë¿Ú:%dÊ§°Ü!\n", the_prun.pcfg.terminal_tcp_port);
+        fprintf(stderr, "ç›‘å¬ç»ˆç«¯ç™»å½•ç«¯å£:%då¤±è´¥!\n", the_prun.pcfg.terminal_tcp_port);
         goto __cFep_end;
     }
 
-    /* 6. Æô¶¯terminalµÄUDP¶Ë¿Ú¼àÌı */
+    /* 6. å¯åŠ¨terminalçš„UDPç«¯å£ç›‘å¬ */
     the_prun.terminal_udp.type = E_TYPE_TERMINAL;
     the_prun.terminal_udp.listen = socket_listen(the_prun.pcfg.terminal_udp_port, E_SOCKET_UDP);
     if (the_prun.terminal_udp.listen == NULL)
     {
-        fprintf(stderr, "¼àÌıÖÕ¶ËµÇÂ¼UDP¶Ë¿Ú:%dÊ§°Ü!\n", the_prun.pcfg.terminal_udp_port);
+        fprintf(stderr, "ç›‘å¬ç»ˆç«¯ç™»å½•UDPç«¯å£:%då¤±è´¥!\n", the_prun.pcfg.terminal_udp_port);
         goto __cFep_end;
     }
 
     print_ver_info();
     the_sem = semBCreate(0);
 #ifdef _WIN32
-    _onexit(default_on_exit);  //×¢²áÄ¬ÈÏÍË³öº¯Êı
+    _onexit(default_on_exit);  //æ³¨å†Œé»˜è®¤é€€å‡ºå‡½æ•°
     (void)taskSpawn("USR_INPUT", 0, 1024, user_input_thread, 0);
     if (the_prun.pcfg.support_front)
     {
@@ -1148,26 +1148,26 @@ int main(int argc, char **argv)
     while (1)
     {
 #ifdef _WIN32
-        /* ¶ÁÈ¡Ç°ÖÃÊı¾İ */
+        /* è¯»å–å‰ç½®æ•°æ® */
         front_recv();
 #endif
 
-        /* ¼ì²âºóÌ¨¶Ë¿Ú */
+        /* æ£€æµ‹åå°ç«¯å£ */
         tcp_accept(&the_prun.app_tcp);
 
-        /* ¼ì²âÖÕ¶Ë¶Ë¿Ú */
+        /* æ£€æµ‹ç»ˆç«¯ç«¯å£ */
         tcp_accept(&the_prun.terminal_tcp);
 
-        /* ¶ÁÈ¡ºóÌ¨Êı¾İ */
+        /* è¯»å–åå°æ•°æ® */
         tcp_read(&the_prun.app_tcp);
 
-        /* ¶ÁÈ¡ÖÕ¶ËÊı¾İ */
+        /* è¯»å–ç»ˆç«¯æ•°æ® */
         tcp_read(&the_prun.terminal_tcp);
 
-        /* ¶ÁÈ¡UDPÊı¾İ */
+        /* è¯»å–UDPæ•°æ® */
         udp_read(&the_prun.terminal_udp);
 
-        /* Á¬½ÓÎ¬»¤ */
+        /* è¿æ¥ç»´æŠ¤ */
         if (!(count & 0x0f))
         {
             daemo_task(&the_prun.terminal_udp);

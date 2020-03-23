@@ -27,30 +27,30 @@
 typedef struct
 {
     struct ListNode node;
-    void *socket;           //socketÁ¬½Ó¾ä±ú
-    time_t connect_time;    //Á¬½ÓÊ±¼ä
-    time_t last_time;       //ÉÏÒ»´ÎÍ¨ĞÅÊ±¼ä
-    int flag;               //±êÖ¾: ÊÇ·ñĞèÒª·¢ËÍÉè±¸ÁĞ±í
+    void *socket;           //socketè¿æ¥å¥æŸ„
+    time_t connect_time;    //è¿æ¥æ—¶é—´
+    time_t last_time;       //ä¸Šä¸€æ¬¡é€šä¿¡æ—¶é—´
+    int flag;               //æ ‡å¿—: æ˜¯å¦éœ€è¦å‘é€è®¾å¤‡åˆ—è¡¨
 } client_t;
 
 typedef struct
 {
     struct ListNode node;
     client_t *pclient;
-    int socket;             //socketÁ¬½Ó¾ä±ú
-    time_t connect_time;    //Á¬½ÓÊ±¼ä
-    time_t last_time;       //ÉÏÒ»´ÎÍ¨ĞÅÊ±¼ä
-    time_t heart_time;      //ÉÏÒ»´ÎĞÄÌøÊ±¼ä
+    int socket;             //socketè¿æ¥å¥æŸ„
+    time_t connect_time;    //è¿æ¥æ—¶é—´
+    time_t last_time;       //ä¸Šä¸€æ¬¡é€šä¿¡æ—¶é—´
+    time_t heart_time;      //ä¸Šä¸€æ¬¡å¿ƒè·³æ—¶é—´
 
-    uint8_t type;           //Éè±¸ÀàĞÍ: 0(ÖÕ¶Ë) other
-    uint8_t addr[16];       //±íµØÖ·
-    uint8_t mac[6];         //MacµØÖ·
-    uint8_t ipaddr[4];      //IPv4µØÖ·
-    uint8_t err_cnt;        //¹ÊÕÏÊıÁ¿
-    uint32_t err_val;       //¹ÊÕÏ±êÖ¾: ×Ü¹²32Î»,Ã¿Î»¶ÔÓ¦1¸öÍâÉè,ÖÃ1±íÊ¾¹ÊÕÏ
-    uint32_t run_t;         //ÉÏµçÔËĞĞ×ÜÊ±¼ä(µ¥Î»s)
-    uint8_t ver[32];        //Èí¼ş°æ±¾
-    uint8_t date[32];       //Èí¼ş·¢²¼ÈÕÆÚ
+    uint8_t type;           //è®¾å¤‡ç±»å‹: 0(ç»ˆç«¯) other
+    uint8_t addr[16];       //è¡¨åœ°å€
+    uint8_t mac[6];         //Macåœ°å€
+    uint8_t ipaddr[4];      //IPv4åœ°å€
+    uint8_t err_cnt;        //æ•…éšœæ•°é‡
+    uint32_t err_val;       //æ•…éšœæ ‡å¿—: æ€»å…±32ä½,æ¯ä½å¯¹åº”1ä¸ªå¤–è®¾,ç½®1è¡¨ç¤ºæ•…éšœ
+    uint32_t run_t;         //ä¸Šç”µè¿è¡Œæ€»æ—¶é—´(å•ä½s)
+    uint8_t ver[32];        //è½¯ä»¶ç‰ˆæœ¬
+    uint8_t date[32];       //è½¯ä»¶å‘å¸ƒæ—¥æœŸ
 } ttynet_dev_t;
 
 typedef struct
@@ -78,7 +78,7 @@ typedef struct
 /*-----------------------------------------------------------------------------
  Section: Global Variables
  ----------------------------------------------------------------------------*/
-extern unsigned char the_rbuf[2048]; //È«¾Ö»º´æ
+extern unsigned char the_rbuf[2048]; //å…¨å±€ç¼“å­˜
 
 /*-----------------------------------------------------------------------------
  Section: Local Variables
@@ -100,8 +100,8 @@ static ttynet_run_t the_ttynet;
  ----------------------------------------------------------------------------*/
 /**
  ******************************************************************************
- * @brief   É¾³ıÒ»¸öÁ¬½Ó¶ÔÏó
- * @param[in]  *pc : ´ıÉ¾³ıµÄÁ¬½Ó¶ÔÏó
+ * @brief   åˆ é™¤ä¸€ä¸ªè¿æ¥å¯¹è±¡
+ * @param[in]  *pc : å¾…åˆ é™¤çš„è¿æ¥å¯¹è±¡
  *
  * @return  None
  ******************************************************************************
@@ -116,8 +116,8 @@ delete_client(client_t *pc)
 
 /**
  ******************************************************************************
- * @brief   ¼ì²âtelnet¶Ë¿ÚÊÇ·ñÓĞĞÂÔö¿Í»§¶Ë
- * @param[in]  *prun : ttynetÔËĞĞ²ÎÊı
+ * @brief   æ£€æµ‹telnetç«¯å£æ˜¯å¦æœ‰æ–°å¢å®¢æˆ·ç«¯
+ * @param[in]  *prun : ttynetè¿è¡Œå‚æ•°
  *
  * @return  None
  ******************************************************************************
@@ -129,7 +129,7 @@ ttynet_accept_client(ttynet_run_t *prun)
 
     while ((conn_fd = socket_accept(prun->listen)) != NULL)
     {
-        //´´½¨·şÎñÆ÷¶Ë¿ÚĞÂµÄÁ¬½Ó
+        //åˆ›å»ºæœåŠ¡å™¨ç«¯å£æ–°çš„è¿æ¥
         client_t *pc = malloc(sizeof(client_t));
         if (pc)
         {
@@ -137,7 +137,7 @@ ttynet_accept_client(ttynet_run_t *prun)
             pc->socket = conn_fd;
             pc->connect_time = time(NULL) - 1;
             pc->last_time = pc->connect_time;
-            ListAddTail(&pc->node, &prun->client_list); //¼ÓÈëÁ´±í
+            ListAddTail(&pc->node, &prun->client_list); //åŠ å…¥é“¾è¡¨
         }
         else
         {
@@ -149,8 +149,8 @@ ttynet_accept_client(ttynet_run_t *prun)
 
 /**
  ******************************************************************************
- * @brief   ´¦Àí¿Í»§¶ËÃüÁî
- * @param[in]  *prun : ttynetÔËĞĞ²ÎÊı
+ * @brief   å¤„ç†å®¢æˆ·ç«¯å‘½ä»¤
+ * @param[in]  *prun : ttynetè¿è¡Œå‚æ•°
  *
  * @retval     None
  ******************************************************************************
@@ -169,11 +169,11 @@ ttynet_recv_client_cmd(ttynet_run_t *prun)
 
         while ((len = socket_recv(pc->socket, the_rbuf, sizeof(the_rbuf))) > 0)
         {
-            //todo: ¼ì²âÃüÁî
+            //todo: æ£€æµ‹å‘½ä»¤
         }
         if (len < 0)
         {
-            log_print(L_DEBUG, "telnet client ¶ÁÈ¡Ê§°Ü!\n");
+            log_print(L_DEBUG, "telnet client è¯»å–å¤±è´¥!\n");
             piter = piter->pPrevNode;
             delete_client(pc);
         }
@@ -182,8 +182,8 @@ ttynet_recv_client_cmd(ttynet_run_t *prun)
 
 /**
  ******************************************************************************
- * @brief   ´¦ÀíÉè±¸Á´±í
- * @param[in]  *prun : ttynetÔËĞĞ²ÎÊı
+ * @brief   å¤„ç†è®¾å¤‡é“¾è¡¨
+ * @param[in]  *prun : ttynetè¿è¡Œå‚æ•°
  *
  * @retval     None
  ******************************************************************************
@@ -196,11 +196,11 @@ ttynet_recv_device_list(ttynet_run_t *prun)
 
 /**
  ******************************************************************************
- * @brief   ttynet³õÊ¼»¯
- * @param[in]  port : telnet¼àÌı¶Ë¿Ú
+ * @brief   ttynetåˆå§‹åŒ–
+ * @param[in]  port : telnetç›‘å¬ç«¯å£
  *
- * @retval  OK    : ³É¹¦
- * @retval  ERROR : Ê§°Ü
+ * @retval  OK    : æˆåŠŸ
+ * @retval  ERROR : å¤±è´¥
  ******************************************************************************
  */
 status_t
@@ -214,7 +214,7 @@ ttynet_init(uint16_t port)
     the_ttynet.listen = socket_listen(the_ttynet.telnet_port, E_SOCKET_TCP);
     if (the_ttynet.listen == NULL)
     {
-        fprintf(stderr, "¼àÌıTelnetµÇÂ¼¶Ë¿Ú:%dÊ§°Ü!\n", the_ttynet.telnet_port);
+        fprintf(stderr, "ç›‘å¬Telnetç™»å½•ç«¯å£:%då¤±è´¥!\n", the_ttynet.telnet_port);
         return ERROR;
     }
 
@@ -223,23 +223,23 @@ ttynet_init(uint16_t port)
 
 /**
  ******************************************************************************
- * @brief   ttynet¶¨Ê±´¦Àí·½·¨
+ * @brief   ttynetå®šæ—¶å¤„ç†æ–¹æ³•
  * @return  None
  ******************************************************************************
  */
 void
 ttynet_do(void)
 {
-    ttynet_accept_client(&the_ttynet); //½ÓÊÜ¿Í»§¶Ë
+    ttynet_accept_client(&the_ttynet); //æ¥å—å®¢æˆ·ç«¯
 
-    ttynet_recv_client_cmd(&the_ttynet); //´¦Àí¿Í»§¶ËÃüÁî
+    ttynet_recv_client_cmd(&the_ttynet); //å¤„ç†å®¢æˆ·ç«¯å‘½ä»¤
 
     ttynet_recv_device_list(&the_ttynet);
 }
 
 /**
  ******************************************************************************
- * @brief   ttynetË¢ĞÂÉè±¸ÁĞ±í
+ * @brief   ttynetåˆ·æ–°è®¾å¤‡åˆ—è¡¨
  * @return  None
  ******************************************************************************
  */
@@ -251,7 +251,7 @@ ttynet_refresh_dev(void)
 
 /**
  ******************************************************************************
- * @brief   ttynetÊä³öĞÅÏ¢
+ * @brief   ttynetè¾“å‡ºä¿¡æ¯
  * @return  None
  ******************************************************************************
  */
