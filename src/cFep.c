@@ -125,6 +125,7 @@ show_app_list_info(void)
     printf("-------------------------------------------------------------------\n");
 }
 
+#ifdef _WIN32
 /**
  ******************************************************************************
  * @brief   用户输入处理线程
@@ -259,6 +260,7 @@ user_input_thread(void *p)
         socket_msleep(100u);
     }
 }
+#endif
 
 /**
  ******************************************************************************
@@ -1127,8 +1129,8 @@ int main(int argc, char **argv)
 #endif
 
 #if SUPPORT_ACCEPT_THREAD
-    (void)taskSpawn("accept_app", 0, 1024, accept_thread, (uint32_t)&the_prun.app_tcp);
-    (void)taskSpawn("accept_tmn", 0, 1024, accept_thread, (uint32_t)&the_prun.terminal_tcp);
+    (void)taskSpawn("accept_app", 0, 1024, accept_thread, &the_prun.app_tcp);
+    (void)taskSpawn("accept_tmn", 0, 1024, accept_thread, &the_prun.terminal_tcp);
 #endif
 
     while (1)
