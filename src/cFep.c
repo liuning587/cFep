@@ -1151,21 +1151,17 @@ int main(int argc, char **argv)
         udp_read(&the_prun.terminal_udp);
 
         /* 连接维护 */
-        if (!(count & 0x0f))
+        if (!(++count & 0x3f))
         {
             daemo_task(&the_prun.terminal_udp);
             daemo_task(&the_prun.terminal_tcp);
             daemo_task(&the_prun.app_tcp);
+            log_sync();
         }
 
-//        if (!(count & 0x03))
-        {
-//            log_sync();
-            semGive(the_sem);
-            socket_msleep(10u);
-            semTake(the_sem, 0);
-        }
-        count++;
+        semGive(the_sem);
+        socket_msleep(10u);
+        semTake(the_sem, 0);
     }
 
 __cFep_end:
