@@ -46,6 +46,10 @@ ListAddTail(struct ListNode *pNew,
         struct ListNode *pHead);
 
 extern void
+ListAddTailList(struct ListNode *pNew,
+        struct ListNode *pHead);
+
+extern void
 ListDelNode(struct ListNode *pNode);
 
 extern int

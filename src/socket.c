@@ -315,13 +315,15 @@ socket_connect(const char *pHostName,
  * @brief   socket监听
  * @param[in]  port : 监听端口号
  * @param[in]  type : 0,tcp; 1,udp
+ * @param[in]  md   : 0,阻塞; 1,非阻塞
  *
  * @retval  listen fd
  ******************************************************************************
  */
 void *
 socket_listen(unsigned short port,
-        char type)
+        char type,
+        int md)
 {
     int listen_fd;
     struct sockaddr_in servaddr;
@@ -340,7 +342,7 @@ socket_listen(unsigned short port,
         return NULL;
     }
 #ifdef _WIN32
-    u_long mode = 1;
+    u_long mode = md;
     ioctlsocket((SOCKET)listen_fd, FIONBIO, &mode);
 
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
@@ -350,10 +352,9 @@ socket_listen(unsigned short port,
 #else
     #if 0
     int flags = fcntl(listen_fd, F_GETFL);
-    fcntl(listen_fd, F_SETFL,
-            1 ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK));
+    fcntl(listen_fd, F_SETFL, 1 ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK));
     #endif
-    unsigned int iMode = 1;  //non-blocking mode is enabled.
+    unsigned int iMode = md;  //non-blocking mode is enabled.
     ioctl(listen_fd, FIONBIO, &iMode);
 #endif
     memset(&servaddr, 0x00, sizeof(servaddr));
@@ -420,6 +421,11 @@ socket_accept(void *listen_fd)
 
 #ifdef __WIN32
     cfd = accept((SOCKET)pnew_listen->socket, (struct sockaddr*) NULL, NULL);
+    if (cfd != -1)
+    {
+        u_long mode = 1;
+        ioctlsocket(cfd, FIONBIO, &mode);
+    }
 #else
     cfd = accept((SOCKET)pnew_listen->socket, (struct sockaddr*) NULL, NULL);
 

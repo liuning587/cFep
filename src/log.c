@@ -203,7 +203,6 @@ log_buf(int level,
             }
             (void)fprintf(the_log_fp, "\n");
             (void)fprintf(stdout, "\n");
-            (void)fflush(the_log_fp);
         }
     }
 }
@@ -231,10 +230,21 @@ log_print(int level,
         {
             va_copy(args_, args);
             (void)vfprintf(the_log_fp, fmt, args_);
-            (void)fflush(the_log_fp);
         }
         (void)vfprintf(stdout, fmt, args);
     }
+}
+
+/**
+ ******************************************************************************
+ * @brief   日志数据回写磁盘
+ * @return  None
+ ******************************************************************************
+ */
+void
+log_sync(void)
+{
+    (void)fflush(the_log_fp);
 }
 
 /*----------------------------------log.c------------------------------------*/

@@ -122,6 +122,29 @@ ListAddTail(struct ListNode *pNew,
 
 /**
  ******************************************************************************
+ * @brief   将链表插入链表尾
+ * @param[in]  None
+ * @param[out] None
+ * @retval     None
+ *
+ * @details
+ *
+ * @note
+ ******************************************************************************
+ */
+void
+ListAddTailList(struct ListNode *pNew,
+        struct ListNode *pHead)
+{
+    pHead->pPrevNode->pNextNode = pNew->pNextNode;
+    pNew->pNextNode->pPrevNode = pHead->pPrevNode;
+
+    pNew->pPrevNode->pNextNode = pHead;
+    pHead->pPrevNode = pNew->pPrevNode;
+}
+
+/**
+ ******************************************************************************
  * @brief      .
  * @param[in]  None
  * @param[out] None

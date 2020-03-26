@@ -211,7 +211,7 @@ ttynet_init(uint16_t port)
     InitListHead(&the_ttynet.client_list);
     InitListHead(&the_ttynet.dev_list);
 
-    the_ttynet.listen = socket_listen(the_ttynet.telnet_port, E_SOCKET_TCP);
+    the_ttynet.listen = socket_listen(the_ttynet.telnet_port, E_SOCKET_TCP, 1);
     if (the_ttynet.listen == NULL)
     {
         fprintf(stderr, "监听Telnet登录端口:%d失败!\n", the_ttynet.telnet_port);

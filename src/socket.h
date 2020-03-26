@@ -61,7 +61,8 @@ socket_connect(const char *pHostName,
 
 extern void *
 socket_listen(unsigned short port,
-        char type);
+        char type,
+        int md);
 
 extern void *
 socket_accept(void *listen_fd);

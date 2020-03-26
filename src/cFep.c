@@ -23,11 +23,14 @@
 #include "taskLib.h"
 #include "ttynet.h"
 
-#define VERSION     "1.2.5"
+#define VERSION     "1.2.6"
 #define SOFTNAME    "cFep"
+
+#define SUPPORT_ACCEPT_THREAD   1
 
 static const ptcl_func_t *ptcl = NULL;
 static SEM_ID the_sem = NULL;
+static SEM_ID the_sem_ready = NULL;
 static prun_t the_prun;
 int the_max_frame_bytes = 2048;
 unsigned char the_rbuf[2048]; //全局缓存
@@ -653,27 +656,6 @@ app_frame_in_cb(void *p,
             &the_prun.terminal_tcp.node,
             &the_prun.terminal_udp.node};
 
-    if (the_prun.front_socket != NULL)
-    {
-        sendlen = socket_send(the_prun.front_socket, pbuf, len);
-        if (sendlen < 0)
-        {
-            socket_close(the_prun.front_socket);
-            the_prun.front_socket = NULL;
-        }
-        else if (sendlen == len)
-        {
-            if (the_prun.pcfg.front_timeout > 0)
-            {
-                socket_msleep(the_prun.pcfg.front_timeout / 1000);
-            }
-        }
-        else
-        {
-            //do nothing
-        }
-    }
-
     if ((the_prun.pcfg.ptcl_type != 4) && ptcl->pfn_get_dir(pbuf))    //0主站-->终端   1终端-->主站
     {
         return;
@@ -726,6 +708,62 @@ app_frame_in_cb(void *p,
     }
 }
 
+#if SUPPORT_ACCEPT_THREAD
+/**
+ ******************************************************************************
+ * @brief   accept线程
+ * @retval  None
+ ******************************************************************************
+ */
+static void
+accept_thread(void *p)
+{
+    slist_t *pslist = (slist_t *)p;
+
+    while (1)
+    {
+        void *conn_fd;
+
+        while ((conn_fd = socket_accept(pslist->listen)) != NULL)
+        {
+            //创建服务器端口新的连接
+            connect_t *pc = malloc(sizeof(connect_t));
+            if (pc)
+            {
+                memset(pc, 0x00, sizeof(connect_t));
+                switch (pslist->type)
+                {
+                    case E_TYPE_APP:
+                        ptcl->pfn_chkfrm_init(&pc->chkfrm, app_frame_in_cb);
+                        break;
+                    case E_TYPE_TERMINAL:
+                        ptcl->pfn_chkfrm_init(&pc->chkfrm, terminal_frame_in_cb);
+                        break;
+                    default:
+                        free(pc);
+                        socket_close(conn_fd);
+                        continue;   //goto while
+                }
+                pc->socket = conn_fd;
+                pc->connect_time = time(NULL) - 1;
+                pc->last_time = pc->connect_time;
+                InitListHead(&pc->cas);
+                memset(&pc->u, 0x00, sizeof(pc->u));
+
+                semTake(the_sem_ready, 0);
+                ListAddTail(&pc->node, &pslist->node_ready); //加入就绪链表
+                semGive(the_sem_ready);
+            }
+            else
+            {
+                log_print(L_ERROR, "out of memory!\n");
+                socket_close(conn_fd);
+            }
+        }
+    }
+}
+#endif
+
 /**
  ******************************************************************************
  * @brief   检测TCP端口
@@ -735,6 +773,16 @@ app_frame_in_cb(void *p,
 static void
 tcp_accept(slist_t *pslist)
 {
+#if SUPPORT_ACCEPT_THREAD
+    if (!ListIsEmpty(&pslist->node_ready))
+    {
+        semTake(the_sem_ready, 0);
+        //将ready node转到正式node
+        ListAddTailList(&pslist->node_ready, &pslist->node);
+        InitListHead(&pslist->node_ready);
+        semGive(the_sem_ready);
+    }
+#else
     void *conn_fd;
 
     while ((conn_fd = socket_accept(pslist->listen)) != NULL)
@@ -744,10 +792,6 @@ tcp_accept(slist_t *pslist)
         if (pc)
         {
             memset(pc, 0x00, sizeof(connect_t));
-            pc->socket = conn_fd;
-            pc->connect_time = time(NULL) - 1;
-            pc->last_time = pc->connect_time;
-            InitListHead(&pc->cas);
             switch (pslist->type)
             {
                 case E_TYPE_APP:
@@ -757,9 +801,13 @@ tcp_accept(slist_t *pslist)
                     ptcl->pfn_chkfrm_init(&pc->chkfrm, terminal_frame_in_cb);
                     break;
                 default:
-                    delete_pc(pc);
+                    free(pc);
                     continue;   //goto while
             }
+            pc->socket = conn_fd;
+            pc->connect_time = time(NULL) - 1;
+            pc->last_time = pc->connect_time;
+            InitListHead(&pc->cas);
             memset(&pc->u, 0x00, sizeof(pc->u));
             ListAddTail(&pc->node, &pslist->node); //加入链表
         }
@@ -769,6 +817,7 @@ tcp_accept(slist_t *pslist)
             socket_close(conn_fd);
         }
     }
+#endif
 }
 
 /**
@@ -928,79 +977,6 @@ default_on_exit(void)
 
     return 0;
 }
-
-/**
- ******************************************************************************
- * @brief   前置通信线程
- * @retval  None
- ******************************************************************************
- */
-static void
-front_thread(void *p)
-{
-    (void)p;
-    void *socket;
-
-    while (1)
-    {
-        if (the_prun.front_socket == NULL)
-        {
-            socket = socket_connect(the_prun.pcfg.front_ip, the_prun.pcfg.front_tcp_port, E_SOCKET_TCP, NULL);
-            if (socket > 0)
-            {
-                semTake(the_sem, 0);
-                the_prun.front_socket = socket;
-                semGive(the_sem);
-            }
-        }
-        socket_msleep(1000u * 10);
-    }
-}
-
-/**
- ******************************************************************************
- * @brief   前置数据接收
- * @retval  None
- ******************************************************************************
- */
-static void
-front_recv(void)
-{
-    int len;
-    int sendlen;
-    connect_t *pct;
-    struct ListNode *ptmp;
-    struct ListNode *piter;
-
-    if (the_prun.front_socket > 0)
-    {
-        len = socket_recv(the_prun.front_socket, the_rbuf, sizeof(the_rbuf));
-        if (len > 0)
-        {
-            LIST_FOR_EACH_SAFE(piter, ptmp, &the_prun.app_tcp.node)
-            {
-                pct = MemToObj(piter, connect_t, node);
-                /* 只要后台连接就上报，不管有没有记录MSA */
-                sendlen = socket_send(pct->socket, the_rbuf, len);
-                if (sendlen < 0)    //转发出错处理
-                {
-                    log_print(L_DEBUG, "前置转发APP失败!\n");
-                    piter = piter->pPrevNode;
-                    delete_pc(pct);
-                }
-            }
-        }
-        else if (len < 0)
-        {
-            socket_close(the_prun.front_socket);
-            the_prun.front_socket = NULL;
-        }
-        else
-        {
-            //do nothing
-        }
-    }
-}
 #endif
 
 /**
@@ -1015,11 +991,6 @@ print_ver_info(void)
     log_print(L_ERROR, "*****************************************************\n");
     log_print(L_ERROR, "SanXing cFep [Version %s] Author : LiuNing\n", VERSION);
     log_print(L_ERROR, "协议类型       : %s\n", ptcl ? ptcl->pname : "未知!");
-    if (the_prun.pcfg.support_front)
-    {
-        log_print(L_ERROR, "前置通信       : %s:%d%s\n", the_prun.pcfg.front_ip, the_prun.pcfg.front_tcp_port, the_prun.front_socket > 0 ? " OK": "");
-        log_print(L_ERROR, "前置超时       : %d(us)\n", the_prun.pcfg.front_timeout);
-    }
     log_print(L_ERROR, "后台TCP登录端口: %d\n", the_prun.pcfg.app_tcp_port);
     log_print(L_ERROR, "终端TCP登录端口: %d\n", the_prun.pcfg.terminal_tcp_port);
     log_print(L_ERROR, "终端UDP登录端口: %d\n", the_prun.pcfg.terminal_udp_port);
@@ -1049,8 +1020,11 @@ int main(int argc, char **argv)
     /* 1. 数据结构初始化 */
     memset(&the_prun, 0x00, sizeof(the_prun));
     InitListHead(&the_prun.app_tcp.node);
+    InitListHead(&the_prun.app_tcp.node_ready);
     InitListHead(&the_prun.terminal_tcp.node);
+    InitListHead(&the_prun.terminal_tcp.node_ready);
     InitListHead(&the_prun.terminal_udp.node);
+    InitListHead(&the_prun.terminal_udp.node_ready);
     the_prun.front_socket = NULL;
 
     /* 2. 参数初始化 */
@@ -1109,7 +1083,12 @@ int main(int argc, char **argv)
 
     /* 4. 启动app端口监听 */
     the_prun.app_tcp.type = E_TYPE_APP;
-    the_prun.app_tcp.listen = socket_listen(the_prun.pcfg.app_tcp_port, E_SOCKET_TCP);
+    the_prun.app_tcp.listen = socket_listen(the_prun.pcfg.app_tcp_port, E_SOCKET_TCP,
+#if SUPPORT_ACCEPT_THREAD
+            0);
+#else
+            1);
+#endif
     if (the_prun.app_tcp.listen == NULL)
     {
         fprintf(stderr, "监听后台登录端口:%d失败!\n", the_prun.pcfg.app_tcp_port);
@@ -1118,7 +1097,12 @@ int main(int argc, char **argv)
 
     /* 5. 启动terminal端口监听 */
     the_prun.terminal_tcp.type = E_TYPE_TERMINAL;
-    the_prun.terminal_tcp.listen = socket_listen(the_prun.pcfg.terminal_tcp_port, E_SOCKET_TCP);
+    the_prun.terminal_tcp.listen = socket_listen(the_prun.pcfg.terminal_tcp_port, E_SOCKET_TCP,
+#if SUPPORT_ACCEPT_THREAD
+            0);
+#else
+            1);
+#endif
     if (the_prun.terminal_tcp.listen == NULL)
     {
         fprintf(stderr, "监听终端登录端口:%d失败!\n", the_prun.pcfg.terminal_tcp_port);
@@ -1127,7 +1111,7 @@ int main(int argc, char **argv)
 
     /* 6. 启动terminal的UDP端口监听 */
     the_prun.terminal_udp.type = E_TYPE_TERMINAL;
-    the_prun.terminal_udp.listen = socket_listen(the_prun.pcfg.terminal_udp_port, E_SOCKET_UDP);
+    the_prun.terminal_udp.listen = socket_listen(the_prun.pcfg.terminal_udp_port, E_SOCKET_UDP, 1);
     if (the_prun.terminal_udp.listen == NULL)
     {
         fprintf(stderr, "监听终端登录UDP端口:%d失败!\n", the_prun.pcfg.terminal_udp_port);
@@ -1136,22 +1120,19 @@ int main(int argc, char **argv)
 
     print_ver_info();
     the_sem = semBCreate(0);
+    the_sem_ready = semBCreate(1);
 #ifdef _WIN32
     _onexit(default_on_exit);  //注册默认退出函数
     (void)taskSpawn("USR_INPUT", 0, 1024, user_input_thread, 0);
-    if (the_prun.pcfg.support_front)
-    {
-        (void)taskSpawn("front", 0, 1024, front_thread, 0);
-    }
+#endif
+
+#if SUPPORT_ACCEPT_THREAD
+    (void)taskSpawn("accept_app", 0, 1024, accept_thread, (uint32_t)&the_prun.app_tcp);
+    (void)taskSpawn("accept_tmn", 0, 1024, accept_thread, (uint32_t)&the_prun.terminal_tcp);
 #endif
 
     while (1)
     {
-#ifdef _WIN32
-        /* 读取前置数据 */
-        front_recv();
-#endif
-
         /* 检测后台端口 */
         tcp_accept(&the_prun.app_tcp);
 
@@ -1175,8 +1156,9 @@ int main(int argc, char **argv)
             daemo_task(&the_prun.app_tcp);
         }
 
-        if (!(count & 0x03))
+//        if (!(count & 0x03))
         {
+//            log_sync();
             semGive(the_sem);
             socket_msleep(10u);
             semTake(the_sem, 0);

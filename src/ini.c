@@ -120,7 +120,6 @@ ini_get_info(pcfg_t *pinfo)
 {
     dictionary  *   ini ;
     int vtmp;
-    char *pstr;
 
     memset(pinfo, 0x00, sizeof(*pinfo));
 
@@ -136,46 +135,6 @@ ini_get_info(pcfg_t *pinfo)
     }
 
     iniparser_dump(ini, NULL);//stderr
-
-    //前置通信
-    pinfo->support_front = 0;
-    vtmp = iniparser_getint(ini, "cfg:support_front", -1);
-    if (vtmp > 0)
-    {
-        do
-        {
-            //前置IP地址
-            pstr = iniparser_getstring(ini, "cfg:front_ip", NULL);
-            if (!pstr)
-            {
-                break;
-            }
-            strncpy(pinfo->front_ip, pstr, sizeof(pinfo->front_ip));
-
-            //前置TCP端口
-            vtmp = iniparser_getint(ini, "cfg:front_tcp_port", -1);
-            if ((vtmp < 0) || (vtmp > 65535))
-            {
-                fprintf(stderr, "前置TCP端口[%d]非法!\n", vtmp);
-                pinfo->front_tcp_port = 0;
-                break;
-            }
-            pinfo->front_tcp_port = vtmp;
-
-            //前置通信超时(单位: us)
-            vtmp = iniparser_getint(ini, "cfg:front_timeout", -1);
-            if (vtmp < 0)
-            {
-                pinfo->front_timeout = 0;
-            }
-            else
-            {
-                pinfo->front_timeout = vtmp;
-            }
-
-            pinfo->support_front = 1;
-        } while (0);
-    }
 
     //后台TCP端口
     vtmp = iniparser_getint(ini, "cfg:app_tcp_port", -1);

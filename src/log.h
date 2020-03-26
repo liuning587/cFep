@@ -59,9 +59,12 @@ log_buf(int level,
         const unsigned char *pbuffer,
         int len);
 
-void
+extern void
 log_print(int level,
         const char *fmt, ...);
+
+extern void
+log_sync(void);
 
 #ifdef __cplusplus      /* Maintain C++ compatibility */
 }
