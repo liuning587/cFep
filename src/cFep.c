@@ -184,7 +184,7 @@ user_input_thread(void *p)
                     if (OK == semTake(the_sem, 100))
                     {
                         the_prun.pcfg.default_debug_level = input - '0';
-                        log_set_level(the_prun.pcfg.default_debug_level);
+                        log_set_level(the_prun.pcfg.default_debug_level, the_prun.pcfg.default_log_level);
                         semGive(the_sem);
                     }
                     printf("设置成功!当前调试级别:%d\n", the_prun.pcfg.default_debug_level);
@@ -197,8 +197,26 @@ user_input_thread(void *p)
                 continue;
 
             case '5':
-                //todo:
-                printf("\n功能待完善！后续开发\n");
+                printf("\n请输入日志级别(0~2)？");
+                do
+                {
+                    input = getchar();
+                } while ((input == '\r') || (input == '\n'));
+                if ((input >= '0') && (input <= '2'))
+                {
+                    if (OK == semTake(the_sem, 100))
+                    {
+                        the_prun.pcfg.default_log_level = input - '0';
+                        log_set_level(the_prun.pcfg.default_log_level, the_prun.pcfg.default_log_level);
+                        semGive(the_sem);
+                    }
+                    printf("设置成功!当前日志级别:%d\n", the_prun.pcfg.default_log_level);
+                }
+                else
+                {
+                    printf("设置失败!当前日志级别:%d\n", the_prun.pcfg.default_log_level);
+                }
+                getchar();
                 continue;
 
             case '6':
@@ -207,6 +225,11 @@ user_input_thread(void *p)
                 continue;
 
             case '7':
+                //todo:
+                printf("\n功能待完善！后续开发\n");
+                continue;
+
+            case '8':
                 printf("\n确认尝试升级[谨慎](Y/N)？");
                 do
                 {
@@ -231,7 +254,7 @@ user_input_thread(void *p)
                 getchar();
                 continue;
 
-            case '8':
+            case '9':
                 printf("\n确认退出吗(Y/N)？");
                 do
                 {
@@ -252,10 +275,11 @@ user_input_thread(void *p)
                "2. 显示在线后台列表\n"
                "3. 显示版本信息\n"
                "4. 设置调试级别\n"
-               "5. 屏蔽心跳\n"
-               "6. 剔除终端\n"
-               "7. 尝试升级\n"
-               "8. 退出\n"
+               "5. 设置日志级别\n"
+               "6. 屏蔽心跳\n"
+               "7. 剔除终端\n"
+               "8. 尝试升级\n"
+               "9. 退出\n"
                "~~~~~~~~~~~~~~~~~~~\n");
         socket_msleep(100u);
     }
@@ -1001,6 +1025,7 @@ print_ver_info(void)
     log_print(L_ERROR, "终端重复上线   : %s\n", the_prun.pcfg.support_comm_terminal ? "是" : "否");
     log_print(L_ERROR, "cFep维护心跳   : %s\n", the_prun.pcfg.is_cfep_reply_heart ? "是" : "否");
     log_print(L_ERROR, "调试级别       : %d\n", the_prun.pcfg.default_debug_level);
+    log_print(L_ERROR, "日志级别       : %d\n", the_prun.pcfg.default_log_level);
     log_print(L_ERROR, "*****************************************************\n");
     log_print(L_ERROR, "* WARNING : DO NOT DRAG THE RIGHT BAR WHEN LOGGING  *\n");
     log_print(L_ERROR, "*           IT WILL BLOCK THE APPLICATION WORKING   *\n");
@@ -1038,7 +1063,7 @@ int main(int argc, char **argv)
     }
     the_max_frame_bytes = the_prun.pcfg.max_frame_bytes;
     (void)log_init();
-    log_set_level(the_prun.pcfg.default_debug_level);
+    log_set_level(the_prun.pcfg.default_debug_level, the_prun.pcfg.default_log_level);
 
     switch (the_prun.pcfg.ptcl_type)
     {
@@ -1151,7 +1176,7 @@ int main(int argc, char **argv)
         udp_read(&the_prun.terminal_udp);
 
         /* 连接维护 */
-        if (!(++count & 0x3f))
+        if (!(++count & 0x7f))
         {
             daemo_task(&the_prun.terminal_udp);
             daemo_task(&the_prun.terminal_tcp);

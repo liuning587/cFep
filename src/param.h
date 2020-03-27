@@ -57,6 +57,14 @@ typedef struct
      * 2 : 打印出错信息 + 报文日志 + 调试打印信息
      */
     int default_debug_level;
+
+    /**
+     * 默认日志级别
+     * 0 : 记录出错信息
+     * 1 : 记录出错信息 + 报文日志
+     * 2 : 记录出错信息 + 报文日志 + 调试打印信息
+     */
+    int default_log_level;
 } pcfg_t;
 
 /** socket list */

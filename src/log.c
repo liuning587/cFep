@@ -38,6 +38,7 @@
  Section: Local Variables
  ----------------------------------------------------------------------------*/
 static FILE *the_log_fp = NULL;
+int the_debug_level = 0;
 int the_log_level = 0;
 //static char the_log_buf[10240]; //10k 打印buf
 
@@ -61,15 +62,18 @@ on_log_exit(void)
 /**
  ******************************************************************************
  * @brief   设置日志级别
- * @param[in]  level : 日志级别
+ * @param[in]  debug_level : 打印级别
+ * @param[in]  log_level   : 日志级别
  *
  * @return  None
  ******************************************************************************
  */
 void
-log_set_level(int level)
+log_set_level(int debug_level,
+        int log_level)
 {
-    the_log_level = level;
+    the_debug_level = debug_level;
+    the_log_level = log_level;
 }
 
 /**
@@ -146,26 +150,25 @@ log_exit(void)
  ******************************************************************************
  */
 static void
-log_time(void)
+log_time(FILE *fp)
 {
-    char buf[1+4+15+1+2];
+    static time_t pre_time = -1;
     struct tm daytime;
     time_t t = time(NULL);
     daytime = *localtime(&t);
 
-    log_check_file(t);
-    snprintf(buf, sizeof(buf), "[%04d-%02d-%02d %02d:%02d:%02d] ",
+    if (pre_time != t)
+    {
+        log_check_file(t);
+        pre_time = t;
+    }
+    fprintf(fp, "[%04d-%02d-%02d %02d:%02d:%02d] ",
             daytime.tm_year + 1900,
             daytime.tm_mon + 1,
             daytime.tm_mday,
             daytime.tm_hour,
             daytime.tm_min,
             daytime.tm_sec);
-    if (the_log_fp)
-    {
-        (void)fprintf(the_log_fp, buf);
-    }
-    (void)fprintf(stdout, buf);
 }
 
 /**
@@ -193,17 +196,25 @@ log_buf(int level,
     {
         if (the_log_fp)
         {
-            log_time();
+            log_time(the_log_fp);
             (void)fprintf(the_log_fp, pformat);
-            (void)fprintf(stdout, pformat);
             for (i = 0; i < len; i++)
             {
                 (void)fprintf(the_log_fp, "%02X ", *(pbuffer + i));
-                (void)fprintf(stdout, "%02X ", *(pbuffer + i));
             }
             (void)fprintf(the_log_fp, "\n");
-            (void)fprintf(stdout, "\n");
         }
+    }
+
+    if (level <= the_debug_level)
+    {
+        log_time(stdout);
+        (void)fprintf(stdout, pformat);
+        for (i = 0; i < len; i++)
+        {
+            (void)fprintf(stdout, "%02X ", *(pbuffer + i));
+        }
+        (void)fprintf(stdout, "\n");
     }
 }
 
@@ -220,18 +231,24 @@ log_print(int level,
         const char *fmt, ...)
 {
     va_list args;
-    va_list args_;
 
     if (level <= the_log_level)
     {
-        va_start( args, fmt );
-        log_time();
         if (the_log_fp)
         {
-            va_copy(args_, args);
-            (void)vfprintf(the_log_fp, fmt, args_);
+            log_time(the_log_fp);
+            va_start(args, fmt);
+            (void)vfprintf(the_log_fp, fmt, args);
+            va_end(args);
         }
+    }
+
+    if (level <= the_debug_level)
+    {
+        log_time(stdout);
+        va_start(args, fmt);
         (void)vfprintf(stdout, fmt, args);
+        va_end(args);
     }
 }
 

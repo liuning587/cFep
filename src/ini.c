@@ -94,6 +94,11 @@ create_example_ini_file(void)
             "#  1 : 打印重要信息 + 报文日志\n"
             "#  2 : 打印重要信息 + 报文日志 + 调试信息\n"
             "default_debug_level    = 0\n"
+            "#默认日志级别\n"
+            "#  0 : 保存重要信息\n"
+            "#  1 : 保存重要信息 + 报文日志\n"
+            "#  2 : 保存重要信息 + 报文日志 + 调试信息\n"
+            "default_log_level    = 2\n"
             );
     fclose(ini);
 }
@@ -330,6 +335,23 @@ ini_get_info(pcfg_t *pinfo)
     else
     {
         pinfo->default_debug_level = vtmp;
+    }
+
+    //默认日志级别
+    vtmp = iniparser_getint(ini, "cfg:default_log_level", -1);
+    if (vtmp == -1)
+    {
+        iniparser_freedict(ini);
+        return -1;
+    }
+    if ((vtmp < 0) || (vtmp > 2))
+    {
+        fprintf(stderr, "默认日志级别[%d]非法!\n", vtmp);
+        pinfo->default_log_level = 0;
+    }
+    else
+    {
+        pinfo->default_log_level = vtmp;
     }
 
     iniparser_freedict(ini);
