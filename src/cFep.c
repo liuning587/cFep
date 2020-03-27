@@ -207,7 +207,7 @@ user_input_thread(void *p)
                     if (OK == semTake(the_sem, 100))
                     {
                         the_prun.pcfg.default_log_level = input - '0';
-                        log_set_level(the_prun.pcfg.default_log_level, the_prun.pcfg.default_log_level);
+                        log_set_level(the_prun.pcfg.default_debug_level, the_prun.pcfg.default_log_level);
                         semGive(the_sem);
                     }
                     printf("设置成功!当前日志级别:%d\n", the_prun.pcfg.default_log_level);
@@ -1185,7 +1185,7 @@ int main(int argc, char **argv)
         }
 
         semGive(the_sem);
-        socket_msleep(1u);
+        socket_msleep(10u);
         semTake(the_sem, 0);
     }
 
