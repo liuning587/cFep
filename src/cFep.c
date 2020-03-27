@@ -26,7 +26,11 @@
 #define VERSION     "1.2.6"
 #define SOFTNAME    "cFep"
 
+#ifdef _WIN32
 #define SUPPORT_ACCEPT_THREAD   1
+#else
+#define SUPPORT_ACCEPT_THREAD   0
+#endif
 
 static const ptcl_func_t *ptcl = NULL;
 static SEM_ID the_sem = NULL;
