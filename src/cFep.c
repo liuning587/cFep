@@ -30,7 +30,9 @@
 
 static const ptcl_func_t *ptcl = NULL;
 static SEM_ID the_sem = NULL;
+#if SUPPORT_ACCEPT_THREAD
 static SEM_ID the_sem_ready = NULL;
+#endif
 static prun_t the_prun;
 int the_max_frame_bytes = 2048;
 unsigned char the_rbuf[2048]; //全局缓存
@@ -1120,13 +1122,13 @@ int main(int argc, char **argv)
 
     print_ver_info();
     the_sem = semBCreate(0);
-    the_sem_ready = semBCreate(1);
 #ifdef _WIN32
     _onexit(default_on_exit);  //注册默认退出函数
     (void)taskSpawn("USR_INPUT", 0, 1024, user_input_thread, 0);
 #endif
 
 #if SUPPORT_ACCEPT_THREAD
+    the_sem_ready = semBCreate(1);
     (void)taskSpawn("accept_app", 0, 1024, accept_thread, &the_prun.app_tcp);
     (void)taskSpawn("accept_tmn", 0, 1024, accept_thread, &the_prun.terminal_tcp);
 #endif
@@ -1158,7 +1160,7 @@ int main(int argc, char **argv)
         }
 
         semGive(the_sem);
-        socket_msleep(10u);
+        socket_msleep(1u);
         semTake(the_sem, 0);
     }
 
