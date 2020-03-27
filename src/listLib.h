@@ -13,14 +13,11 @@
 /*-----------------------------------------------------------------------------
  Section: Type Definitions
  ----------------------------------------------------------------------------*/
-#pragma pack(push, 1)
 struct ListNode
 {
 	struct ListNode *pNextNode;
 	struct ListNode *pPrevNode;
 };
-
-#pragma pack(pop)
 
 #define LIST_FOR_EACH(iter, pHead) \
 	for (iter = (pHead)->pNextNode; iter != (pHead); iter = iter->pNextNode)

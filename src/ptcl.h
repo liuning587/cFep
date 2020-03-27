@@ -41,7 +41,6 @@ typedef enum FUNCTYPE
     ONLINE
 } func_type_e;
 
-#pragma pack(push, 1)
 
 /** 主站、终端通用地址结构6字节 */
 typedef union
@@ -140,8 +139,6 @@ typedef struct
      */
     int (*pfn_build_online_packet)(const unsigned char*, unsigned char*, int);
 } ptcl_func_t;
-
-#pragma pack(pop)
 
 /*-----------------------------------------------------------------------------
  Section: Globals
