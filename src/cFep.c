@@ -868,10 +868,13 @@ tcp_read(slist_t *pslist)
     {
         pc = MemToObj(piter, connect_t, node);
 
-        while ((len = socket_recv(pc->socket, the_rbuf, sizeof(the_rbuf))) > 0)
+        do
         {
-            ptcl->pfn_chfrm(pc, &pc->chkfrm, (unsigned char*)the_rbuf, len);
-        }
+            if ((len = socket_recv(pc->socket, the_rbuf, sizeof(the_rbuf))) > 0)
+            {
+                ptcl->pfn_chfrm(pc, &pc->chkfrm, the_rbuf, len);
+            }
+        } while (len == sizeof(the_rbuf));
         if (len < 0)
         {
             log_print(L_DEBUG, "addr:%s 读取失败!\n", ptcl->pfn_addr_str(&pc->u));
