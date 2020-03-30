@@ -14,6 +14,9 @@
  ----------------------------------------------------------------------------*/
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <pthread.h>
+#include <errno.h>
 #endif
 #include <time.h>
 #include <stdio.h>
@@ -29,7 +32,9 @@
 /*-----------------------------------------------------------------------------
  Section: Constant Definitions
  ----------------------------------------------------------------------------*/
-/* NONE */ 
+#ifndef MAX_USER_RT_PRIO
+#define MAX_USER_RT_PRIO (100)
+#endif
 
 /*-----------------------------------------------------------------------------
  Section: Global Variables
@@ -73,7 +78,45 @@ taskSpawn(const char * name, uint32_t priority, uint32_t stackSize,
             (PVOID)arg, 0, &tid);
     return (TASK_ID)pvThread;
 #else
-	return NULL;
+    pthread_t pid;
+    pthread_attr_t attr;
+    struct sched_param param;
+
+    if (pthread_attr_init(&attr))
+    {
+        perror("pthread_attr_init");
+        return NULL;
+    }
+    if (pthread_attr_setschedpolicy(&attr, SCHED_RR))
+    {
+        perror("pthread_attr_setschedpolicy");
+        return NULL;
+    }
+
+    if (priority > 64)
+    {
+        priority = 64;
+    }
+    param.sched_priority = MAX_USER_RT_PRIO - 1 - priority;
+    if (pthread_attr_setschedparam(&attr, &param))
+    {
+        perror("pthread_attr_setschedparam");
+        return NULL;
+    }
+
+    if (pthread_create(&pid, &attr, (void *(*)(void *))(void *)entryPt, (void *)arg))
+    {
+        perror("pthread_create");
+        return NULL;
+    }
+
+    if (pthread_attr_destroy(&attr))
+    {
+        perror("pthread_attr_destroy");
+        return NULL;
+    }
+
+    return (TASK_ID)pid;
 #endif
 }
 
@@ -91,7 +134,16 @@ semBCreate(uint32_t cnt)
 #ifdef _WIN32
     return (SEM_ID)CreateSemaphore(NULL, cnt, 10, NULL);
 #else
-	return NULL;
+    pthread_mutex_t *plock = malloc(sizeof(pthread_mutex_t));
+    if (plock)
+    {
+        pthread_mutex_init(plock, NULL);
+        if (!cnt)
+        {
+            pthread_mutex_lock(plock);
+        }
+    }
+    return (SEM_ID)plock;
 #endif
 }
 
@@ -112,6 +164,7 @@ semDelete(SEM_ID semId)
 #ifdef _WIN32
     (void)CloseHandle((HANDLE)semId);
 #else
+    pthread_mutex_destroy((pthread_mutex_t *)semId);
 #endif
 }
 
@@ -136,6 +189,8 @@ semTake(SEM_ID semId, uint32_t timeout)
         return ERROR;
     }
 #else
+    (void)timeout;
+    pthread_mutex_lock((pthread_mutex_t *)semId);
 #endif
     return OK;
 }
@@ -160,10 +215,12 @@ semGive(SEM_ID semId)
         return ERROR;
     }
 #else
+    pthread_mutex_unlock((pthread_mutex_t *)semId);
 #endif
     return OK;
 }
 
+#if 0
 /**
  ******************************************************************************
  * @brief      delay the current task.
@@ -196,5 +253,6 @@ timerGet()
 {
     return clock();
 }
+#endif
 
 /*--------------------------------taskLib.c----------------------------------*/
