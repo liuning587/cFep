@@ -65,6 +65,9 @@ typedef struct
      * 2 : 记录出错信息 + 报文日志 + 调试打印信息
      */
     int default_log_level;
+
+    int count;                              /**< 一次处理连接数 */
+    int delay;                              /**< 每圈延时时间 */
 } pcfg_t;
 
 /** socket list */

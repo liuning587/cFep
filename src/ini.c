@@ -354,6 +354,10 @@ ini_get_info(pcfg_t *pinfo)
         pinfo->default_log_level = vtmp;
     }
 
+    //todo: read from cfg file
+    pinfo->count = 500;
+    pinfo->delay = 10;
+
     iniparser_freedict(ini);
 
     return 0;

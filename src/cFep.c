@@ -859,6 +859,7 @@ tcp_accept(slist_t *pslist)
 static void
 tcp_read(slist_t *pslist)
 {
+    int cnt = 0;
     int len;
     connect_t *pc;
     struct ListNode *ptmp;
@@ -880,6 +881,14 @@ tcp_read(slist_t *pslist)
             log_print(L_DEBUG, "addr:%s 读取失败!\n", ptcl->pfn_addr_str(&pc->u));
             piter = piter->pPrevNode;
             delete_pc(pc);
+        }
+        else
+        {
+            if (++cnt >= the_prun.pcfg.count)
+            {
+                ListMoveHead(&pslist->node, piter);
+                break;
+            }
         }
     }
 }
@@ -1068,6 +1077,8 @@ int main(int argc, char **argv)
         getchar();
         goto __cFep_end;
     }
+    the_prun.pcfg.count = MAX(500, the_prun.pcfg.count);
+    the_prun.pcfg.delay = MAX(1, the_prun.pcfg.delay);
     the_max_frame_bytes = the_prun.pcfg.max_frame_bytes;
     (void)log_init();
     log_set_level(the_prun.pcfg.default_debug_level, the_prun.pcfg.default_log_level);
@@ -1192,7 +1203,7 @@ int main(int argc, char **argv)
         }
 
         semGive(the_sem);
-        socket_msleep(10u);
+        socket_msleep(the_prun.pcfg.delay);
         semTake(the_sem, 0);
     }
 

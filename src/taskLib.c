@@ -131,7 +131,7 @@ extern status_t
 semTake(SEM_ID semId, uint32_t timeout)
 {
 #ifdef _WIN32
-    if (!WaitForSingleObject((HANDLE)semId, timeout * 10))
+    if (!WaitForSingleObject((HANDLE)semId, timeout ? timeout * 10 : INFINITE))
     {
         return ERROR;
     }

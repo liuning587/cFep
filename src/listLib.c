@@ -145,6 +145,36 @@ ListAddTailList(struct ListNode *pNew,
 
 /**
  ******************************************************************************
+ * @brief   移动到链表头
+ * @param[in]  None
+ * @param[out] None
+ * @retval     None
+ *
+ * @details
+ *
+ * @note
+ ******************************************************************************
+ */
+void
+ListMoveHead(struct ListNode *pHead,
+        struct ListNode *pNode)
+{
+    if (pNode->pNextNode == pHead)
+    {
+        return;
+    }
+    pHead->pNextNode->pPrevNode = pHead->pPrevNode;
+    pHead->pPrevNode->pNextNode = pHead->pNextNode;
+
+    pHead->pNextNode = pNode->pNextNode;
+    pNode->pNextNode = pHead;
+
+    pHead->pNextNode->pPrevNode = pHead;
+    pHead->pPrevNode = pNode;
+}
+
+/**
+ ******************************************************************************
  * @brief      .
  * @param[in]  None
  * @param[out] None
@@ -193,4 +223,5 @@ ListIsEmpty(const struct ListNode *pHead)
 {
     return pHead->pNextNode == pHead;
 }
+
 /*------------------------------ listLib.c ----------------------------------*/
