@@ -23,7 +23,7 @@
 #include "taskLib.h"
 #include "ttynet.h"
 
-#define VERSION     "1.2.6"
+#define VERSION     "1.2.7"
 #define SOFTNAME    "cFep"
 
 #define SUPPORT_ACCEPT_THREAD   1
@@ -385,7 +385,10 @@ delete_pc(connect_t *pc)
     struct ListNode *ptmp;
     struct ListNode *piter;
 
-    socket_close(pc->socket);
+    if (socket_type(pc->socket) != E_SOCKET_UDP)
+    {
+        socket_close(pc->socket);
+    }
     if (pc->chkfrm.pbuf)
     {
         free(pc->chkfrm.pbuf);
@@ -910,6 +913,8 @@ udp_read(slist_t *pslist)
     {
         if (!ip || !port) continue;
         pc = NULL;
+
+        log_buf(L_DEBUG, "UDP RECV: ", the_rbuf, len);
         //寻找相同的IP:port，存在则chkfrm
         LIST_FOR_EACH(piter, &pslist->node)
         {
