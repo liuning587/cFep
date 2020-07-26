@@ -261,7 +261,10 @@ log_print(int level,
 void
 log_sync(void)
 {
-    (void)fflush(the_log_fp);
+    if (the_log_fp)
+    {
+    	(void)fflush(the_log_fp);
+    }
 }
 
 /*----------------------------------log.c------------------------------------*/

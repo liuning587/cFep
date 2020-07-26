@@ -352,10 +352,11 @@ socket_listen(unsigned short port,
 #else
     #if 0
     int flags = fcntl(listen_fd, F_GETFL);
-    fcntl(listen_fd, F_SETFL, 1 ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK));
-    #endif
+    fcntl(listen_fd, F_SETFL, md ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK));
+	#else
     unsigned int iMode = md;  //non-blocking mode is enabled.
     ioctl(listen_fd, FIONBIO, &iMode);
+    #endif
 #endif
     memset(&servaddr, 0x00, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
