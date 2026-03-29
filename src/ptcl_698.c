@@ -123,6 +123,29 @@ typedef struct
  ----------------------------------------------------------------------------*/
 /**
  ******************************************************************************
+ * @brief   丢弃 698 组帧状态并释放缓冲
+ * @param[in,out] pchk 报文检测上下文
+ *
+ * @return  None
+ * @details 同时清零 cfm_len（本模块复用其保存 SA 区结束下标）。
+ ******************************************************************************
+ */
+static void
+p698_chkfrm_reset(chkfrm_t *pchk)
+{
+    if (pchk->pbuf != NULL)
+    {
+        free(pchk->pbuf);
+        pchk->pbuf = NULL;
+    }
+    pchk->frame_state = P698_FRAME_STATES_NULL;
+    pchk->pbuf_pos = 0;
+    pchk->dlen = 0;
+    pchk->cfm_len = 0;
+}
+
+/**
+ ******************************************************************************
  * @brief   国网报文检测初始化
  * @param[in]  *pchk         : 报文检测对象
  * @param[in]  *pfn_frame_in : 当收到合法报文后执行的回调函数
@@ -143,13 +166,16 @@ p698_chkfrm_init(chkfrm_t *pchk,
 
 /**
  ******************************************************************************
- * @brief   698报文检测
+ * @brief   DL/T 698.45 类帧报文检测
  * @param[in]  *pc      : 连接对象(fixme : 是否需要每次传入?)
  * @param[in]  *pchk    : 报文检测对象
  * @param[in]  *rxBuf   : 输入数据
  * @param[in]  rxLen    : 输入数据长度
  *
  * @return  None
+ * @details SA 结束位置存于 pchk->cfm_len（勿再用 static，避免多连接串扰）。
+ *          用户区结束为 dlen-2：dlen<2 或 pbuf_pos 已超过 uend 则丢弃；
+ *          写入前检查 pbuf 与 cap，防堆溢出。
  ******************************************************************************
  */
 static void
@@ -158,8 +184,6 @@ p698_chkfrm(void *pc,
         const unsigned char *rxBuf,
         int rxLen)
 {
-    static unsigned char saLen = 0;
-
     /* 如果已经完成的桢则重新开始 */
     if (pchk->frame_state == P698_FRAME_STATES_COMPLETE)
     {
@@ -175,6 +199,13 @@ p698_chkfrm(void *pc,
 
     while (rxLen > 0)
     {
+        /* 单帧缓冲与 malloc(the_max_frame_bytes) 一致 */
+        if (pchk->pbuf != NULL && pchk->pbuf_pos >= (unsigned)the_max_frame_bytes)
+        {
+            log_print(L_ERROR, "698 组帧超长,已丢弃\n");
+            p698_chkfrm_reset(pchk);
+        }
+
         switch (pchk->frame_state)
         {
             case P698_FRAME_STATES_NULL:
@@ -183,7 +214,7 @@ p698_chkfrm(void *pc,
                 {
                     if (!pchk->pbuf)
                     {
-                        pchk->pbuf = malloc(the_max_frame_bytes);
+                        pchk->pbuf = malloc((size_t)the_max_frame_bytes);
                         if (!pchk->pbuf)
                         {
                             return;
@@ -196,18 +227,16 @@ p698_chkfrm(void *pc,
                 }
                 break;
 
-            case P698_FRAME_STATES_LEN1_1: /* 检测L1的低字节 */
+            case P698_FRAME_STATES_LEN1_1:
                 pchk->frame_state = P698_FRAME_STATES_LEN1_2;
                 pchk->dlen = *rxBuf;
                 break;
 
-            case P698_FRAME_STATES_LEN1_2: /* 检测L1的高字节 */
+            case P698_FRAME_STATES_LEN1_2:
                 pchk->dlen += ((unsigned int)*rxBuf << 8u);
-                if (pchk->dlen > (the_max_frame_bytes - 20))
+                if (pchk->dlen > (unsigned)(the_max_frame_bytes - 20))
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = P698_FRAME_STATES_NULL;
+                    p698_chkfrm_reset(pchk);
                 }
                 else
                 {
@@ -216,16 +245,21 @@ p698_chkfrm(void *pc,
                 break;
 
             case P698_FRAME_STATES_CONTROL:
-                pchk->frame_state = P698_FRAME_STATES_AF;/* 不能检测方向，因为级联有上行报文 */
+                pchk->frame_state = P698_FRAME_STATES_AF;
                 break;
 
             case P698_FRAME_STATES_AF:
-                saLen =  ((*rxBuf) & 0xf) + pchk->pbuf_pos + 1;
+                /*
+                 * cfm_len：本字节写入前，SA 区在 pbuf 中应收到的结束下标
+                 *（与吉林规约中“重复 L”的 cfm_len 用法不同，698 单连接独占 chkfrm）。
+                 */
+                pchk->cfm_len = (unsigned int)((*rxBuf) & 0x0fu)
+                        + (unsigned int)pchk->pbuf_pos + 1u;
                 pchk->frame_state = P698_FRAME_STATES_SA;
                 break;
 
             case P698_FRAME_STATES_SA:
-                if (pchk->pbuf_pos == saLen)
+                if (pchk->pbuf_pos == pchk->cfm_len)
                 {
                     pchk->frame_state = P698_FRAME_STATES_CA;
                 }
@@ -244,9 +278,26 @@ p698_chkfrm(void *pc,
                 break;
 
             case P698_FRAME_STATES_LINK_USER_DATA:
-                if (pchk->pbuf_pos == (pchk->dlen - 2))
+                /* dlen<2 时 dlen-2 无意义，原实现用无符号下溢导致永不结束 */
+                if (pchk->dlen < 2u)
                 {
-                    pchk->frame_state = P698_FRAME_STATES_FCS1;
+                    log_print(L_DEBUG, "698 帧长过短,丢弃\n");
+                    p698_chkfrm_reset(pchk);
+                    break;
+                }
+                {
+                    unsigned int uend = pchk->dlen - 2u;
+
+                    if (pchk->pbuf_pos > uend)
+                    {
+                        log_print(L_DEBUG, "698 用户数据长度矛盾,丢弃\n");
+                        p698_chkfrm_reset(pchk);
+                        break;
+                    }
+                    if (pchk->pbuf_pos == uend)
+                    {
+                        pchk->frame_state = P698_FRAME_STATES_FCS1;
+                    }
                 }
                 break;
 
@@ -265,9 +316,7 @@ p698_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = P698_FRAME_STATES_NULL;
+                    p698_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -275,25 +324,32 @@ p698_chkfrm(void *pc,
                 break;
         }
 
+        /* 每字节落盘；须保证 pbuf 有效且不越过 malloc 边界 */
         if (pchk->frame_state != P698_FRAME_STATES_NULL)
         {
-            pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
-            pchk->pbuf_pos++;
+            if (pchk->pbuf == NULL)
+            {
+                p698_chkfrm_reset(pchk);
+            }
+            else if (pchk->pbuf_pos < (unsigned)the_max_frame_bytes)
+            {
+                pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
+                pchk->pbuf_pos++;
+            }
+            else
+            {
+                p698_chkfrm_reset(pchk);
+            }
         }
 
-        /* 完整报文，调用处理函数接口 */
         if (pchk->frame_state == P698_FRAME_STATES_COMPLETE)
         {
             if (pchk->pfn_frame_in)
             {
-                pchk->pfn_frame_in(pc, pchk->pbuf, pchk->dlen + 2); //这里处理业务
+                pchk->pfn_frame_in(pc, pchk->pbuf, (int)pchk->dlen + 2);
             }
 
-            free(pchk->pbuf);
-            pchk->pbuf = NULL;
-            pchk->frame_state = P698_FRAME_STATES_NULL;
-            pchk->pbuf_pos = 0;
-            pchk->dlen = 0;
+            p698_chkfrm_reset(pchk);
         }
         rxLen--;
         rxBuf++;
@@ -519,7 +575,7 @@ p698_addr_cmp(const addr_t *paddr,
     }
 
     return memcmp(ph->SA.a, &paddr->addr_c16,
-            ph->SA.L + 1 > sizeof(addr_t) ? sizeof(addr_t) : ph->SA.L + 1) == 0 ? 0 : 1;
+            ph->SA.L + 1 > (int)sizeof(addr_t) ? (int)sizeof(addr_t) : ph->SA.L + 1) == 0 ? 0 : 1;
 }
 
 /**
@@ -537,7 +593,7 @@ p698_addr_get(addr_t *paddr,
     p698_header_t *ph = (p698_header_t *)p;
 
     memset(paddr, 0xFF, sizeof(addr_t));
-    memcpy(&paddr->addr, ph->SA.a, ph->SA.L + 1 > sizeof(*paddr) ? sizeof(*paddr) : ph->SA.L + 1);
+    memcpy(&paddr->addr, ph->SA.a, ph->SA.L + 1 > (int)sizeof(*paddr) ? (int)sizeof(*paddr) : ph->SA.L + 1);
 }
 
 /**
@@ -653,6 +709,9 @@ p698_build_online_packet(const unsigned char *p,
         unsigned char *po,
         int sec)
 {
+    (void)p;
+    (void)po;
+    (void)sec;
     return 0;
 }
 

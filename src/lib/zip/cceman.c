@@ -42,6 +42,11 @@ int FormFrame(unsigned char Oper,unsigned char * buf,int buflen)
 	return buflen + 5;
 }
 
+/**
+ * @brief 南网密文帧解密入口（解压/验签等）
+ * @details 严格校验长度域：payload 不得超过 RecvBuf，且须满足 length==DataLen-5，
+ *          防止恶意大包 memcpy 越界；失败分支拷贝调试样本时也限长。
+ */
 int DeData(BYTE * DataBuf, int DataLen)
 {
 	DATA temp;

@@ -71,6 +71,8 @@ extern TASK_ID
 taskSpawn(const char * name, uint32_t priority, uint32_t stackSize,
         OSFUNCPTR entryPt, void *arg)
 {
+    (void)name;
+    (void)priority;
 #ifdef _WIN32
     void *pvThread;
     DWORD tid;

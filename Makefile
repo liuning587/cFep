@@ -63,7 +63,7 @@ DEPS := $(OBJS:.o=.d)
 ifeq ($(origin CC),default)
   CC := gcc
 endif
-CFLAGS  ?= -O2 -Wall -Wextra -std=gnu11 -fsigned-char -ffunction-sections
+CFLAGS  ?= -O2 -Wall -Wextra -Werror -std=gnu11 -fsigned-char -ffunction-sections
 CPPFLAGS += -MMD -MP -I$(SRCDIR) -I$(SRCDIR)/lib/zip
 # macOS 默认链接器对 --gc-sections 支持方式不同，此处省略
 ifeq ($(PLATFORM),darwin)

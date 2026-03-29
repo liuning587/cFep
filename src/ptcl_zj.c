@@ -19,6 +19,7 @@
 #include "param.h"
 #include "lib.h"
 #include "ptcl.h"
+#include "log.h"
 
 /*-----------------------------------------------------------------------------
  Section: Type Definitions
@@ -128,6 +129,28 @@ struct PSWStruct
  ----------------------------------------------------------------------------*/
 /**
  ******************************************************************************
+ * @brief   丢弃浙江规约组帧状态并释放缓冲
+ * @param[in,out] pchk 报文检测上下文
+ *
+ * @return  None
+ ******************************************************************************
+ */
+static void
+zj_chkfrm_reset(chkfrm_t *pchk)
+{
+    if (pchk->pbuf != NULL)
+    {
+        free(pchk->pbuf);
+        pchk->pbuf = NULL;
+    }
+    pchk->frame_state = ZJ_FRAME_STATES_NULL;
+    pchk->pbuf_pos = 0;
+    pchk->dlen = 0;
+    pchk->cfm_len = 0;
+}
+
+/**
+ ******************************************************************************
  * @brief   国网报文检测初始化
  * @param[in]  *pchk         : 报文检测对象
  * @param[in]  *pfn_frame_in : 当收到合法报文后执行的回调函数
@@ -148,13 +171,14 @@ zj_chkfrm_init(chkfrm_t *pchk,
 
 /**
  ******************************************************************************
- * @brief   国网报文检测
+ * @brief   浙江规约报文检测
  * @param[in]  *pc      : 连接对象(fixme : 是否需要每次传入?)
  * @param[in]  *pchk    : 报文检测对象
  * @param[in]  *rxBuf   : 输入数据
  * @param[in]  rxLen    : 输入数据长度
  *
  * @return  None
+ * @details 用户数据结束位置为 10+dlen；若 pbuf_pos 已超过则丢弃，防堆溢出。
  ******************************************************************************
  */
 static void
@@ -178,6 +202,13 @@ zj_chkfrm(void *pc,
 
     while (rxLen > 0)
     {
+        /* 超过单帧缓冲上限则放弃同步 */
+        if (pchk->pbuf != NULL && pchk->pbuf_pos >= (unsigned)the_max_frame_bytes)
+        {
+            log_print(L_ERROR, "浙江规约组帧超长,已丢弃\n");
+            zj_chkfrm_reset(pchk);
+        }
+
         switch (pchk->frame_state)
         {
             case ZJ_FRAME_STATES_NULL:
@@ -185,10 +216,10 @@ zj_chkfrm(void *pc,
                 {
                     if (!pchk->pbuf)
                     {
-                        pchk->pbuf = malloc(the_max_frame_bytes);
+                        pchk->pbuf = malloc((size_t)the_max_frame_bytes);
                         if (!pchk->pbuf)
                         {
-                            return; //
+                            return;
                         }
                     }
                     pchk->pbuf_pos = 0;
@@ -211,31 +242,27 @@ zj_chkfrm(void *pc,
                     }
                     else
                     {
-                        free(pchk->pbuf);
-                        pchk->pbuf = NULL;
-                        pchk->frame_state = ZJ_FRAME_STATES_NULL;
+                        zj_chkfrm_reset(pchk);
                     }
                 }
                 break;
 
             case ZJ_FRAME_STATES_CONTROL:
                 pchk->cs += *rxBuf;
-                pchk->frame_state = ZJ_FRAME_STATES_LEN1;/* 不能检测方向，因为级联有上行报文 */
+                pchk->frame_state = ZJ_FRAME_STATES_LEN1;
                 break;
 
-            case ZJ_FRAME_STATES_LEN1: /* 检测L1的低字节 */
+            case ZJ_FRAME_STATES_LEN1:
                 pchk->cs += *rxBuf;
-                pchk->frame_state = ZJ_FRAME_STATES_LEN2;/* 为兼容主站不检测规约类型 */
+                pchk->frame_state = ZJ_FRAME_STATES_LEN2;
                 pchk->dlen = *rxBuf;
                 break;
 
-            case ZJ_FRAME_STATES_LEN2: /* 检测L1的高字节 */
+            case ZJ_FRAME_STATES_LEN2:
                 pchk->dlen += ((unsigned int)*rxBuf << 8u);
-                if (pchk->dlen > (the_max_frame_bytes - 13)) //fixme:
+                if (pchk->dlen > (unsigned)(the_max_frame_bytes - 13))
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = ZJ_FRAME_STATES_NULL;
+                    zj_chkfrm_reset(pchk);
                 }
                 else
                 {
@@ -252,7 +279,14 @@ zj_chkfrm(void *pc,
 
             case ZJ_FRAME_STATES_LINK_USER_DATA:
                 pchk->cs += *rxBuf;
-                if (pchk->pbuf_pos == (10 + pchk->dlen))
+                /* 10+dlen 为数据域结束下标；已超过则无法合法结束帧 */
+                if (pchk->pbuf_pos > (10u + pchk->dlen))
+                {
+                    log_print(L_DEBUG, "浙江规约长度域与头部长度矛盾,丢弃\n");
+                    zj_chkfrm_reset(pchk);
+                    break;
+                }
+                if (pchk->pbuf_pos == (10u + pchk->dlen))
                 {
                     pchk->frame_state = ZJ_FRAME_STATES_CS;
                 }
@@ -265,9 +299,7 @@ zj_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = ZJ_FRAME_STATES_NULL;
+                    zj_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -278,9 +310,7 @@ zj_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = ZJ_FRAME_STATES_NULL;
+                    zj_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -290,23 +320,29 @@ zj_chkfrm(void *pc,
 
         if (pchk->frame_state != ZJ_FRAME_STATES_NULL)
         {
-            pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
-            pchk->pbuf_pos++;
+            if (pchk->pbuf == NULL)
+            {
+                zj_chkfrm_reset(pchk);
+            }
+            else if (pchk->pbuf_pos < (unsigned)the_max_frame_bytes) /* 安全写入一字节 */
+            {
+                pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
+                pchk->pbuf_pos++;
+            }
+            else
+            {
+                zj_chkfrm_reset(pchk);
+            }
         }
 
-        /* 完整报文，调用处理函数接口 */
         if (pchk->frame_state == ZJ_FRAME_STATES_COMPLETE)
         {
             if (pchk->pfn_frame_in)
             {
-                pchk->pfn_frame_in(pc, pchk->pbuf, pchk->pbuf_pos); //这里处理业务
+                pchk->pfn_frame_in(pc, pchk->pbuf, (int)pchk->pbuf_pos);
             }
 
-            free(pchk->pbuf);
-            pchk->pbuf = NULL;
-            pchk->frame_state = ZJ_FRAME_STATES_NULL;
-            pchk->pbuf_pos = 0;
-            pchk->dlen = 0;
+            zj_chkfrm_reset(pchk);
         }
         rxLen--;
         rxBuf++;
@@ -426,7 +462,7 @@ zj_addr_cmp(const addr_t *paddr,
 {
     zj_header_t *ph = (zj_header_t *)p;
 
-    return (ph->logicaddr == paddr->addr) ? 0 : 1;
+    return (ph->logicaddr == (unsigned int)paddr->addr) ? 0 : 1;
 }
 
 /**

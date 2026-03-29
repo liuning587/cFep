@@ -40,6 +40,7 @@
 #include "param.h"
 #include "lib.h"
 #include "ptcl.h"
+#include "log.h"
 
 /*-----------------------------------------------------------------------------
  Section: Type Definitions
@@ -185,6 +186,29 @@ struct TransparentSend
  ----------------------------------------------------------------------------*/
 /**
  ******************************************************************************
+ * @brief   丢弃当前国网组帧状态并释放缓冲
+ * @param[in,out] pchk 报文检测上下文
+ *
+ * @return  None
+ * @details 校验失败、L 域与头部长度矛盾、组帧超长时调用，防止状态机卡死写穿堆。
+ ******************************************************************************
+ */
+static void
+gw_chkfrm_reset(chkfrm_t *pchk)
+{
+    if (pchk->pbuf != NULL)
+    {
+        free(pchk->pbuf);
+        pchk->pbuf = NULL;
+    }
+    pchk->frame_state = GW_FRAME_STATES_NULL;
+    pchk->pbuf_pos = 0;
+    pchk->dlen = 0;
+    pchk->cfm_len = 0;
+}
+
+/**
+ ******************************************************************************
  * @brief   国网报文检测初始化
  * @param[in]  *pchk         : 报文检测对象
  * @param[in]  *pfn_frame_in : 当收到合法报文后执行的回调函数
@@ -205,13 +229,13 @@ gw_chkfrm_init(chkfrm_t *pchk,
 
 /**
  ******************************************************************************
- * @brief   国网报文检测
+ * @brief   国网报文检测（376 类帧）
+ * @details 逐字节组帧；限制 pbuf_pos < the_max_frame_bytes；
+ *          若 pbuf_pos > 5+dlen 说明 L 域与已收头矛盾，丢弃以防堆溢出。
  * @param[in]  *pc      : 连接对象(fixme : 是否需要每次传入?)
  * @param[in]  *pchk    : 报文检测对象
  * @param[in]  *rxBuf   : 输入数据
  * @param[in]  rxLen    : 输入数据长度
- *
- * @return  None
  ******************************************************************************
  */
 static void
@@ -235,6 +259,13 @@ gw_chkfrm(void *pc,
 
     while (rxLen > 0)
     {
+        /* 超过 malloc 上限仍追加会堆溢出 */
+        if (pchk->pbuf != NULL && pchk->pbuf_pos >= (unsigned)the_max_frame_bytes)
+        {
+            log_print(L_ERROR, "国网组帧超长,已丢弃\n");
+            gw_chkfrm_reset(pchk);
+        }
+
         switch (pchk->frame_state)
         {
             case GW_FRAME_STATES_NULL:
@@ -243,10 +274,10 @@ gw_chkfrm(void *pc,
                 {
                     if (!pchk->pbuf)
                     {
-                        pchk->pbuf = malloc(the_max_frame_bytes);
+                        pchk->pbuf = malloc((size_t)the_max_frame_bytes);
                         if (!pchk->pbuf)
                         {
-                            return; //
+                            return;
                         }
                     }
                     pchk->pbuf_pos = 0;
@@ -256,18 +287,16 @@ gw_chkfrm(void *pc,
                 }
                 break;
 
-            case GW_FRAME_STATES_LEN1_1: /* 检测L1的低字节 */
-                pchk->frame_state = GW_FRAME_STATES_LEN1_2;/* 为兼容主站不检测规约类型 */
+            case GW_FRAME_STATES_LEN1_1:
+                pchk->frame_state = GW_FRAME_STATES_LEN1_2;
                 pchk->dlen = ((*rxBuf & 0xFCu) >> 2u);
                 break;
 
-            case GW_FRAME_STATES_LEN1_2: /* 检测L1的高字节 */
+            case GW_FRAME_STATES_LEN1_2:
                 pchk->dlen += ((unsigned int)*rxBuf << 6u);
-                if (pchk->dlen > (the_max_frame_bytes - 8))
+                if (pchk->dlen > (unsigned)(the_max_frame_bytes - 8))
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = GW_FRAME_STATES_NULL;
+                    gw_chkfrm_reset(pchk);
                 }
                 else
                 {
@@ -275,12 +304,12 @@ gw_chkfrm(void *pc,
                 }
                 break;
 
-            case GW_FRAME_STATES_LEN2_1: /*检测L2的低字节*/
+            case GW_FRAME_STATES_LEN2_1:
                 pchk->frame_state = GW_FRAME_STATES_LEN2_2;
                 pchk->cfm_len = ((*rxBuf & 0xFCu) >> 2u);
                 break;
 
-            case GW_FRAME_STATES_LEN2_2: /*检测L2的高字节*/
+            case GW_FRAME_STATES_LEN2_2:
                 pchk->cfm_len += ((unsigned int)*rxBuf << 6u);
                 if (pchk->cfm_len == pchk->dlen)
                 {
@@ -288,9 +317,7 @@ gw_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = GW_FRAME_STATES_NULL;
+                    gw_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -301,15 +328,13 @@ gw_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = GW_FRAME_STATES_NULL;
+                    gw_chkfrm_reset(pchk);
                 }
                 break;
 
             case GW_FRAME_STATES_CONTROL:
                 pchk->cs = *rxBuf;
-                pchk->frame_state = GW_FRAME_STATES_A3;/* 不能检测方向，因为级联有上行报文 */
+                pchk->frame_state = GW_FRAME_STATES_A3;
                 break;
 
             case GW_FRAME_STATES_A3:
@@ -322,7 +347,14 @@ gw_chkfrm(void *pc,
 
             case GW_FRAME_STATES_LINK_USER_DATA:
                 pchk->cs += *rxBuf;
-                if (pchk->pbuf_pos == (5 + pchk->dlen))
+                /* L 过小则永远等不到 pbuf_pos==5+dlen，原逻辑会写爆 pbuf */
+                if (pchk->pbuf_pos > (5u + pchk->dlen))
+                {
+                    log_print(L_DEBUG, "国网 L 域与头部长度矛盾,丢弃\n");
+                    gw_chkfrm_reset(pchk);
+                    break;
+                }
+                if (pchk->pbuf_pos == (5u + pchk->dlen))
                 {
                     pchk->frame_state = GW_FRAME_STATES_CS;
                 }
@@ -335,9 +367,7 @@ gw_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = GW_FRAME_STATES_NULL;
+                    gw_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -348,34 +378,39 @@ gw_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = GW_FRAME_STATES_NULL;
+                    gw_chkfrm_reset(pchk);
                 }
                 break;
             default:
                 break;
         }
 
+        /* 每字节写入 pbuf，须防 NULL 与越界 */
         if (pchk->frame_state != GW_FRAME_STATES_NULL)
         {
-            pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
-            pchk->pbuf_pos++;
+            if (pchk->pbuf == NULL)
+            {
+                gw_chkfrm_reset(pchk);
+            }
+            else if (pchk->pbuf_pos < (unsigned)the_max_frame_bytes)
+            {
+                pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
+                pchk->pbuf_pos++;
+            }
+            else
+            {
+                gw_chkfrm_reset(pchk);
+            }
         }
 
-        /* 完整报文，调用处理函数接口 */
         if (pchk->frame_state == GW_FRAME_STATES_COMPLETE)
         {
             if (pchk->pfn_frame_in)
             {
-                pchk->pfn_frame_in(pc, pchk->pbuf, pchk->dlen + 8); //这里处理业务
+                pchk->pfn_frame_in(pc, pchk->pbuf, (int)pchk->dlen + 8);
             }
 
-            free(pchk->pbuf);
-            pchk->pbuf = NULL;
-            pchk->frame_state = GW_FRAME_STATES_NULL;
-            pchk->pbuf_pos = 0;
-            pchk->dlen = 0;
+            gw_chkfrm_reset(pchk);
         }
         rxLen--;
         rxBuf++;
@@ -522,7 +557,7 @@ gw_addr_cmp(const addr_t *paddr,
 {
     gw_header_t *ph = (gw_header_t *)p;
 
-    return (ph->logicaddr == paddr->addr) ? 0 : 1;
+    return (ph->logicaddr == (unsigned int)paddr->addr) ? 0 : 1;
 }
 
 /**

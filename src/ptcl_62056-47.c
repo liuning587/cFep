@@ -194,6 +194,7 @@ C4 //GET-Response
 #include <string.h>
 #include <time.h>
 #include "maths.h"
+#include "log.h"
 #include "param.h"
 #include "lib.h"
 #include "ptcl.h"
@@ -267,6 +268,28 @@ typedef struct
  ----------------------------------------------------------------------------*/
 /**
  ******************************************************************************
+ * @brief   丢弃 62056-47 组帧状态并释放缓冲
+ * @param[in,out] pchk 报文检测上下文
+ *
+ * @return  None
+ ******************************************************************************
+ */
+static void
+p47_chkfrm_reset(chkfrm_t *pchk)
+{
+    if (pchk->pbuf != NULL)
+    {
+        free(pchk->pbuf);
+        pchk->pbuf = NULL;
+    }
+    pchk->frame_state = P47_FRAME_STATES_NULL;
+    pchk->pbuf_pos = 0;
+    pchk->dlen = 0;
+    pchk->cfm_len = 0;
+}
+
+/**
+ ******************************************************************************
  * @brief   62056-47报文检测初始化
  * @param[in]  *pchk         : 报文检测对象
  * @param[in]  *pfn_frame_in : 当收到合法报文后执行的回调函数
@@ -287,13 +310,13 @@ p47_chkfrm_init(chkfrm_t *pchk,
 
 /**
  ******************************************************************************
- * @brief   62056-47报文检测
+ * @brief   62056-47 报文检测
+ * @details DATA 区结束条件 pbuf_pos==7+dlen；若已大于则长度域异常，丢弃。
+ *          default 分支须 reset，避免旧代码仅置 NULL 导致 pbuf 泄漏。
  * @param[in]  *pc      : 连接对象(fixme : 是否需要每次传入?)
  * @param[in]  *pchk    : 报文检测对象
  * @param[in]  *rxBuf   : 输入数据
  * @param[in]  rxLen    : 输入数据长度
- *
- * @return  None
  ******************************************************************************
  */
 static void
@@ -317,6 +340,13 @@ p47_chkfrm(void *pc,
 
     while (rxLen > 0)
     {
+        /* 与国网/南网组帧相同的越界保护 */
+        if (pchk->pbuf != NULL && pchk->pbuf_pos >= (unsigned)the_max_frame_bytes)
+        {
+            log_print(L_ERROR, "62056-47 组帧超长,已丢弃\n");
+            p47_chkfrm_reset(pchk);
+        }
+
         switch (pchk->frame_state)
         {
             case P47_FRAME_STATES_NULL:
@@ -324,10 +354,10 @@ p47_chkfrm(void *pc,
                 {
                     if (!pchk->pbuf)
                     {
-                        pchk->pbuf = malloc(the_max_frame_bytes);
+                        pchk->pbuf = malloc((size_t)the_max_frame_bytes);
                         if (!pchk->pbuf)
                         {
-                            return; //
+                            return;
                         }
                     }
                     pchk->pbuf_pos = 0;
@@ -344,9 +374,7 @@ p47_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = P47_FRAME_STATES_NULL;
+                    p47_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -366,18 +394,16 @@ p47_chkfrm(void *pc,
                 pchk->frame_state = P47_FRAME_STATES_LEN_1;
                 break;
 
-            case P47_FRAME_STATES_LEN_1: /* 检测L1的低字节 */
-                pchk->frame_state = P47_FRAME_STATES_LEN_2;/* 为兼容主站不检测规约类型 */
+            case P47_FRAME_STATES_LEN_1:
+                pchk->frame_state = P47_FRAME_STATES_LEN_2;
                 pchk->dlen = *rxBuf << 8;
                 break;
 
-            case P47_FRAME_STATES_LEN_2: /* 检测L1的高字节 */
+            case P47_FRAME_STATES_LEN_2:
                 pchk->dlen += ((unsigned int)*rxBuf);
-                if (pchk->dlen > (the_max_frame_bytes - 8)) //fixme: 8
+                if (pchk->dlen > (unsigned)(the_max_frame_bytes - 8))
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = P47_FRAME_STATES_NULL;
+                    p47_chkfrm_reset(pchk);
                 }
                 else
                 {
@@ -387,36 +413,49 @@ p47_chkfrm(void *pc,
 
             case P47_FRAME_STATES_DATA:
                 pchk->cs += *rxBuf;
-                if (pchk->pbuf_pos == (7 + pchk->dlen))
+                /* APDU 结束于 7+dlen；偏大说明 L 与已收字节不一致 */
+                if (pchk->pbuf_pos > (7u + pchk->dlen))
+                {
+                    log_print(L_DEBUG, "62056-47 长度域矛盾,丢弃\n");
+                    p47_chkfrm_reset(pchk);
+                    break;
+                }
+                if (pchk->pbuf_pos == (7u + pchk->dlen))
                 {
                     pchk->frame_state = GW_FRAME_STATES_COMPLETE;
                 }
                 break;
 
             default:
-                pchk->frame_state = P47_FRAME_STATES_NULL;
+                p47_chkfrm_reset(pchk);
                 break;
         }
 
         if (pchk->frame_state != P47_FRAME_STATES_NULL)
         {
-            pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
-            pchk->pbuf_pos++;
+            if (pchk->pbuf == NULL)
+            {
+                p47_chkfrm_reset(pchk);
+            }
+            else if (pchk->pbuf_pos < (unsigned)the_max_frame_bytes)
+            {
+                pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
+                pchk->pbuf_pos++;
+            }
+            else
+            {
+                p47_chkfrm_reset(pchk);
+            }
         }
 
-        /* 完整报文，调用处理函数接口 */
         if (pchk->frame_state == GW_FRAME_STATES_COMPLETE)
         {
             if (pchk->pfn_frame_in)
             {
-                pchk->pfn_frame_in(pc, pchk->pbuf, pchk->dlen + 8); //这里处理业务
+                pchk->pfn_frame_in(pc, pchk->pbuf, (int)pchk->dlen + 8);
             }
 
-            free(pchk->pbuf);
-            pchk->pbuf = NULL;
-            pchk->frame_state = P47_FRAME_STATES_NULL;
-            pchk->pbuf_pos = 0;
-            pchk->dlen = 0;
+            p47_chkfrm_reset(pchk);
         }
         rxLen--;
         rxBuf++;
@@ -681,6 +720,8 @@ static int
 p47_get_oline_addr(addr_t *paddr,
         const unsigned char *p)
 {
+    (void)paddr;
+    (void)p;
 //    p47_header_t *ph = (p47_header_t *)p;
     return 0;
 }

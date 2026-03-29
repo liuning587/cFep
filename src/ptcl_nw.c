@@ -136,6 +136,30 @@ struct TPStruct
  ----------------------------------------------------------------------------*/
 /**
  ******************************************************************************
+ * @brief   丢弃当前南网组帧状态并释放缓冲
+ * @param[in,out] pchk 报文检测上下文
+ *
+ * @return  None
+ * @details 出错、超长、L 域矛盾、DeData 失败或嵌套过深时调用，避免 pbuf 泄漏
+ *          及状态机卡死导致的堆溢出。
+ ******************************************************************************
+ */
+static void
+nw_chkfrm_reset(chkfrm_t *pchk)
+{
+    if (pchk->pbuf != NULL)
+    {
+        free(pchk->pbuf);
+        pchk->pbuf = NULL;
+    }
+    pchk->frame_state = NW_FRAME_STATES_NULL;
+    pchk->pbuf_pos = 0;
+    pchk->dlen = 0;
+    pchk->cfm_len = 0;
+}
+
+/**
+ ******************************************************************************
  * @brief   国网报文检测初始化
  * @param[in]  *pchk         : 报文检测对象
  * @param[in]  *pfn_frame_in : 当收到合法报文后执行的回调函数
@@ -154,22 +178,27 @@ nw_chkfrm_init(chkfrm_t *pchk,
     pchk->pfn_frame_in = pfn_frame_in;
 }
 
+
 /**
  ******************************************************************************
- * @brief   国网报文检测
+ * @brief   南网组帧解析（支持密文嵌套，内部实现）
  * @param[in]  *pc      : 连接对象(fixme : 是否需要每次传入?)
  * @param[in]  *pchk    : 报文检测对象
  * @param[in]  *rxBuf   : 输入数据
  * @param[in]  rxLen    : 输入数据长度
  *
  * @return  None
+ * @details 对 rxBuf 逐字节推进状态机；密文 0x88 解密成功后递归解析内层帧。
+ *          防护：pbuf 不超过 the_max_frame_bytes；L 与头部长度矛盾时丢弃；
+ *          写入前检查 pbuf 非空；DeData 失败不进入“假完成”路径。
  ******************************************************************************
  */
 static void
-nw_chkfrm(void *pc,
+nw_chkfrm_nested(void *pc,
         chkfrm_t *pchk,
         const unsigned char *rxBuf,
-        int rxLen)
+        int rxLen,
+        unsigned nest)
 {
     /* 如果已经完成的桢则重新开始 */
     if (pchk->frame_state == NW_FRAME_STATES_COMPLETE)
@@ -184,8 +213,23 @@ nw_chkfrm(void *pc,
         pchk->frame_state = NW_FRAME_STATES_NULL;
     }
 
+    /* 密文解包递归深度上限，防止恶意包栈溢出或长时间递归 */
+    if (nest > 8u)
+    {
+        log_print(L_ERROR, "南网密文帧嵌套超过限制,已丢弃\n");
+        nw_chkfrm_reset(pchk);
+        return;
+    }
+
     while (rxLen > 0)
     {
+        /* 已达分配上限仍不停写 pbuf 会堆溢出，直接废弃本帧 */
+        if (pchk->pbuf != NULL && pchk->pbuf_pos >= (unsigned)the_max_frame_bytes)
+        {
+            log_print(L_ERROR, "南网组帧超长,已丢弃\n");
+            nw_chkfrm_reset(pchk);
+        }
+
         switch (pchk->frame_state)
         {
             case NW_FRAME_STATES_NULL:
@@ -194,16 +238,16 @@ nw_chkfrm(void *pc,
                 {
                     if (!pchk->pbuf)
                     {
-                        pchk->pbuf = malloc(the_max_frame_bytes);
+                        pchk->pbuf = malloc((size_t)the_max_frame_bytes);
                         if (!pchk->pbuf)
                         {
-                            return; //
+                            return;
                         }
                     }
                     pchk->pbuf_pos = 0;
                     if (*rxBuf == 0x88)
                     {
-                        pchk->frame_state = NW_COMPRESS_OPER; //密文
+                        pchk->frame_state = NW_COMPRESS_OPER;
                     }
                     else
                     {
@@ -214,18 +258,16 @@ nw_chkfrm(void *pc,
                 }
                 break;
 
-            case NW_FRAME_STATES_LEN1_1: /* 检测L1的低字节 */
-                pchk->frame_state = NW_FRAME_STATES_LEN1_2;/* 为兼容主站不检测规约类型 */
+            case NW_FRAME_STATES_LEN1_1:
+                pchk->frame_state = NW_FRAME_STATES_LEN1_2;
                 pchk->dlen = *rxBuf;
                 break;
 
-            case NW_FRAME_STATES_LEN1_2: /* 检测L1的高字节 */
+            case NW_FRAME_STATES_LEN1_2:
                 pchk->dlen += ((unsigned int)*rxBuf << 8u);
-                if (pchk->dlen > (the_max_frame_bytes - 8))
+                if (pchk->dlen > (unsigned)(the_max_frame_bytes - 8))
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = NW_FRAME_STATES_NULL;
+                    nw_chkfrm_reset(pchk);
                 }
                 else
                 {
@@ -233,12 +275,12 @@ nw_chkfrm(void *pc,
                 }
                 break;
 
-            case NW_FRAME_STATES_LEN2_1: /*检测L2的低字节*/
+            case NW_FRAME_STATES_LEN2_1:
                 pchk->frame_state = NW_FRAME_STATES_LEN2_2;
                 pchk->cfm_len = *rxBuf;
                 break;
 
-            case NW_FRAME_STATES_LEN2_2: /*检测L2的高字节*/
+            case NW_FRAME_STATES_LEN2_2:
                 pchk->cfm_len += ((unsigned int)*rxBuf << 8u);
                 if (pchk->cfm_len == pchk->dlen)
                 {
@@ -246,9 +288,7 @@ nw_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = NW_FRAME_STATES_NULL;
+                    nw_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -259,15 +299,13 @@ nw_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = NW_FRAME_STATES_NULL;
+                    nw_chkfrm_reset(pchk);
                 }
                 break;
 
             case NW_FRAME_STATES_CONTROL:
                 pchk->cs = *rxBuf;
-                pchk->frame_state = NW_FRAME_STATES_A3;/* 不能检测方向，因为级联有上行报文 */
+                pchk->frame_state = NW_FRAME_STATES_A3;
                 break;
 
             case NW_FRAME_STATES_A3:
@@ -280,7 +318,17 @@ nw_chkfrm(void *pc,
 
             case NW_FRAME_STATES_LINK_USER_DATA:
                 pchk->cs += *rxBuf;
-                if (pchk->pbuf_pos == (5 + pchk->dlen))
+                /*
+                 * L 域过小：已进入用户数据区时 pbuf_pos 已超过 5+dlen，
+                 * 原逻辑永远无法触发 CS，会死循环写穿 pbuf。
+                 */
+                if (pchk->pbuf_pos > (5u + pchk->dlen))
+                {
+                    log_print(L_DEBUG, "南网 L 域与头部长度矛盾,丢弃\n");
+                    nw_chkfrm_reset(pchk);
+                    break;
+                }
+                if (pchk->pbuf_pos == (5u + pchk->dlen))
                 {
                     pchk->frame_state = NW_FRAME_STATES_CS;
                 }
@@ -293,9 +341,7 @@ nw_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = NW_FRAME_STATES_NULL;
+                    nw_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -306,9 +352,7 @@ nw_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = NW_FRAME_STATES_NULL;
+                    nw_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -319,9 +363,7 @@ nw_chkfrm(void *pc,
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = NW_FRAME_STATES_NULL;
+                    nw_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -332,11 +374,9 @@ nw_chkfrm(void *pc,
 
             case NW_COMPRESS_LEN2:
                 pchk->dlen += *rxBuf;
-                if (pchk->dlen > (the_max_frame_bytes - 8))
+                if (pchk->dlen > (unsigned)(the_max_frame_bytes - 8))
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = NW_FRAME_STATES_NULL;
+                    nw_chkfrm_reset(pchk);
                 }
                 else
                 {
@@ -345,7 +385,14 @@ nw_chkfrm(void *pc,
                 break;
 
             case NW_COMPRESS_DATA:
-                if (pchk->pbuf_pos == (3 + pchk->dlen))
+                /* 与明文同理：密文长度域与已收字节矛盾则丢弃，防止写爆 pbuf */
+                if (pchk->pbuf_pos > (3u + pchk->dlen))
+                {
+                    log_print(L_DEBUG, "南网密文长度矛盾,丢弃\n");
+                    nw_chkfrm_reset(pchk);
+                    break;
+                }
+                if (pchk->pbuf_pos == (3u + pchk->dlen))
                 {
                     pchk->frame_state = NW_COMPRESS_END;
                 }
@@ -355,24 +402,35 @@ nw_chkfrm(void *pc,
                 if (*rxBuf == 0x77)
                 {
                     int delen;
-                    pchk->frame_state = NW_FRAME_STATES_COMPLETE;
+
+                    if (pchk->pbuf == NULL
+                            || pchk->pbuf_pos >= (unsigned)the_max_frame_bytes)
+                    {
+                        nw_chkfrm_reset(pchk);
+                        break;
+                    }
                     pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
                     log_buf(L_DEBUG, "RM: ", pchk->pbuf, pchk->pbuf_pos + 1);
-                    delen = DeData(pchk->pbuf, pchk->pbuf_pos + 1);
+                    delen = DeData(pchk->pbuf, (int)pchk->pbuf_pos + 1);
                     if (0 < delen)
                     {
                         free(pchk->pbuf);
                         pchk->pbuf = NULL;
                         pchk->frame_state = NW_FRAME_STATES_NULL;
+                        pchk->pbuf_pos = 0;
+                        pchk->dlen = 0;
                         log_buf(L_DEBUG, "JM: ", RecvBuf, delen);
-                        nw_chkfrm(pc, pchk, RecvBuf, delen);
+                        nw_chkfrm_nested(pc, pchk, RecvBuf, delen, nest + 1u);
+                    }
+                    else
+                    {
+                        log_print(L_DEBUG, "南网 DeData 失败(%d),丢弃\n", delen);
+                        nw_chkfrm_reset(pchk);
                     }
                 }
                 else
                 {
-                    free(pchk->pbuf);
-                    pchk->pbuf = NULL;
-                    pchk->frame_state = NW_FRAME_STATES_NULL;
+                    nw_chkfrm_reset(pchk);
                 }
                 break;
 
@@ -380,29 +438,58 @@ nw_chkfrm(void *pc,
                 break;
         }
 
+        /* 非 NULL 状态每字节落盘；须保证不越界且 pbuf 已分配 */
         if (pchk->frame_state != NW_FRAME_STATES_NULL)
         {
-            pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
-            pchk->pbuf_pos++;
+            if (pchk->pbuf == NULL)
+            {
+                nw_chkfrm_reset(pchk);
+            }
+            else if (pchk->pbuf_pos < (unsigned)the_max_frame_bytes)
+            {
+                pchk->pbuf[pchk->pbuf_pos] = *rxBuf;
+                pchk->pbuf_pos++;
+            }
+            else
+            {
+                nw_chkfrm_reset(pchk);
+            }
         }
 
-        /* 完整报文，调用处理函数接口 */
         if (pchk->frame_state == NW_FRAME_STATES_COMPLETE)
         {
             if (pchk->pfn_frame_in)
             {
-                pchk->pfn_frame_in(pc, pchk->pbuf, pchk->dlen + 8); //这里处理业务
+                pchk->pfn_frame_in(pc, pchk->pbuf, (int)pchk->dlen + 8);
             }
 
-            free(pchk->pbuf);
-            pchk->pbuf = NULL;
-            pchk->frame_state = NW_FRAME_STATES_NULL;
-            pchk->pbuf_pos = 0;
-            pchk->dlen = 0;
+            nw_chkfrm_reset(pchk);
         }
         rxLen--;
         rxBuf++;
     }
+}
+/**
+ ******************************************************************************
+ * @brief   南网报文检测入口（明文/密文）
+ * @param[in]  *pc      : 连接对象(fixme : 是否需要每次传入?)
+ * @param[in]  *pchk    : 报文检测对象
+ * @param[in]  *rxBuf   : 输入数据
+ * @param[in]  rxLen    : 输入数据长度
+ *
+ * @return  None
+ * @details 对 rxBuf 逐字节推进状态机；密文 0x88 解密成功后递归解析内层帧。
+ *          防护：pbuf 不超过 the_max_frame_bytes；L 与头部长度矛盾时丢弃；
+ *          写入前检查 pbuf 非空；DeData 失败不进入“假完成”路径。
+ ******************************************************************************
+ */
+static void
+nw_chkfrm(void *pc,
+        chkfrm_t *pchk,
+        const unsigned char *rxBuf,
+        int rxLen)
+{
+    nw_chkfrm_nested(pc, pchk, rxBuf, rxLen, 0u);
 }
 
 /**

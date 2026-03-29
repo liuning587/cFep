@@ -193,7 +193,7 @@ ttynet_recv_client_cmd(ttynet_run_t *prun)
 static void
 ttynet_recv_device_list(ttynet_run_t *prun)
 {
-
+    (void)prun;
 }
 
 /**

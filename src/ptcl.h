@@ -144,6 +144,8 @@ typedef struct
  Section: Globals
  ----------------------------------------------------------------------------*/
 extern int the_max_frame_bytes;
+extern unsigned char *the_rbuf;
+extern int the_rbuf_cap;
 
 /*-----------------------------------------------------------------------------
  Section: Function Prototypes

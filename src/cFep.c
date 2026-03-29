@@ -21,9 +21,8 @@
 #include "ini.h"
 #include "log.h"
 #include "taskLib.h"
-#include "ttynet.h"
 
-#define VERSION     "1.2.7"
+#define VERSION     "1.2.8"
 #define SOFTNAME    "cFep"
 
 #define SUPPORT_ACCEPT_THREAD   1
@@ -35,7 +34,8 @@ static SEM_ID the_sem_ready = NULL;
 #endif
 static prun_t the_prun;
 int the_max_frame_bytes = 2048;
-unsigned char the_rbuf[2048]; //全局缓存
+unsigned char *the_rbuf = NULL;
+int the_rbuf_cap = 0;
 
 static void
 print_ver_info(void);
@@ -248,8 +248,8 @@ user_input_thread(void *p)
                             printf("已经是最新版本!\n");
                         }
                         #endif
+                        semGive(the_sem);
                     }
-                    semGive(the_sem);
                 }
                 getchar();
                 continue;
@@ -339,6 +339,10 @@ cas_add(connect_t *pc,
             memcpy(&pca->u, addr, sizeof(addr_t));
             ListAddTail(&pca->node, &pc->cas);
         }
+        else
+        {
+            log_print(L_ERROR, "cas_add: malloc 失败\n");
+        }
     }
 }
 
@@ -420,6 +424,11 @@ build_reply_packet(connect_t *pc,
     int sendlen;
 
     sendlen = ptcl->pfn_build_reply_packet(ph, the_rbuf);
+    if ((sendlen < 0) || (sendlen > the_rbuf_cap))
+    {
+        log_print(L_ERROR, "回复报文长度异常:%d(上限%d)\n", sendlen, the_rbuf_cap);
+        return;
+    }
     if (0 > socket_send(pc->socket, the_rbuf, sendlen))
     {
         pc->is_closing = 1; //发送失败需要关闭
@@ -443,7 +452,7 @@ static void
 build_online_packet(connect_t *pc,
         const unsigned char *ph)
 {
-    int sec = 0xffffffff;
+    int sec = -1;
     int sendlen;
     addr_t addr;
     connect_t *pct;
@@ -463,24 +472,37 @@ build_online_packet(connect_t *pc,
         pct = MemToObj(piter, connect_t, node);
         if (!memcmp(&pct->u, &addr, sizeof(addr)))
         {
-            sec = abs(time(NULL) - pct->last_time);
+            sec = (int)difftime(time(NULL), pct->last_time);
+            if (sec < 0)
+            {
+                sec = 0;
+            }
             break;
         }
     }
-    if (0xffffffff == sec)
+    if (-1 == sec)
     {
         LIST_FOR_EACH(piter, &the_prun.terminal_udp.node)
         {
             pct = MemToObj(piter, connect_t, node);
             if (!memcmp(&pct->u, &addr, sizeof(addr)))
             {
-                sec = abs(time(NULL) - pct->last_time);
+                sec = (int)difftime(time(NULL), pct->last_time);
+                if (sec < 0)
+                {
+                    sec = 0;
+                }
                 break;
             }
         }
     }
 
     sendlen = ptcl->pfn_build_online_packet(ph, the_rbuf, sec);
+    if ((sendlen < 0) || (sendlen > the_rbuf_cap))
+    {
+        log_print(L_ERROR, "在线查询回复长度异常:%d(上限%d)\n", sendlen, the_rbuf_cap);
+        return;
+    }
     if (0 > socket_send(pc->socket, the_rbuf, sendlen))
     {
         pc->is_closing = 1; //发送失败需要关闭
@@ -556,7 +578,7 @@ terminal_frame_in_cb(void *p,
                 struct ListNode *node[] = {
                         &the_prun.terminal_tcp.node,
                         &the_prun.terminal_udp.node};
-                for (i = 0; i < ARRAY_SIZE(node); i++)
+                for (i = 0; i < (int)ARRAY_SIZE(node); i++)
                 {
                     LIST_FOR_EACH_SAFE(piter, ptmp, node[i])
                     {
@@ -676,6 +698,7 @@ app_frame_in_cb(void *p,
 {
     int i;
     int sendlen;
+    const int orig_len = len;
     addr_t addr;
     connect_t *pct;
     struct ListNode *ptmp;
@@ -708,7 +731,7 @@ app_frame_in_cb(void *p,
     }
     log_buf(L_NORMAL, "A: ", pbuf, len);
 
-    for (i = 0; i < ARRAY_SIZE(node); i++)
+    for (i = 0; i < (int)ARRAY_SIZE(node); i++)
     {
         LIST_FOR_EACH_SAFE(piter, ptmp, node[i])
         {
@@ -719,9 +742,15 @@ app_frame_in_cb(void *p,
             {
                 if (the_prun.pcfg.support_compress)
                 {
-                    len = EnData((BYTE *)pbuf, len, EXE_COMPRESS_NEW);  //加密
-                    sendlen = socket_send(pct->socket, SendBuf, len);
-                    log_buf(L_DEBUG, "SM: ", SendBuf, len);
+                    int elen = EnData((BYTE *)pbuf, orig_len, EXE_COMPRESS_NEW);
+
+                    if (elen < 0)
+                    {
+                        log_print(L_ERROR, "EnData 失败:%d\n", elen);
+                        continue;
+                    }
+                    sendlen = socket_send(pct->socket, SendBuf, elen);
+                    log_buf(L_DEBUG, "SM: ", SendBuf, elen);
                 }
                 else
                 {
@@ -870,11 +899,11 @@ tcp_read(slist_t *pslist)
 
         do
         {
-            if ((len = socket_recv(pc->socket, the_rbuf, sizeof(the_rbuf))) > 0)
+            if ((len = socket_recv(pc->socket, the_rbuf, (size_t)the_rbuf_cap)) > 0)
             {
                 ptcl->pfn_chfrm(pc, &pc->chkfrm, the_rbuf, len);
             }
-        } while (len == sizeof(the_rbuf));
+        } while (len == the_rbuf_cap);
         if (len < 0)
         {
             log_print(L_DEBUG, "addr:%s 读取失败!\n", ptcl->pfn_addr_str(&pc->u));
@@ -909,7 +938,7 @@ udp_read(slist_t *pslist)
     const socket_info_t *pinfo;
 
     while (0 < (len = socket_recvfrom(pslist->listen, the_rbuf,
-            sizeof(the_rbuf), &ip, &port)))
+            (size_t)the_rbuf_cap, &ip, &port)))
     {
         if (!ip || !port) continue;
         pc = NULL;
@@ -968,14 +997,16 @@ daemo_task(slist_t *pslist)
     struct ListNode *ptmp;
     struct ListNode *piter;
     time_t cur_time = time(NULL);
+    double idle_sec;
 
     LIST_FOR_EACH_SAFE(piter, ptmp, &pslist->node)
     {
         pc = MemToObj(piter, connect_t, node);
+        idle_sec = difftime(cur_time, pc->last_time);
 
-        if (((the_prun.pcfg.timeout * 60) < abs(pc->last_time - cur_time))
+        if (((double)(the_prun.pcfg.timeout * 60) < idle_sec)
                 /* 连接成功1分钟未发送数据, 剔除 */
-                || ((60 < abs(pc->last_time - cur_time) && (pc->last_time == pc->connect_time)))
+                || ((idle_sec > 60.0) && (pc->last_time == pc->connect_time))
                 || pc->is_closing)
         {
             log_print(L_DEBUG, "addr:%s 超时!\n", ptcl->pfn_addr_str(&pc->u));
@@ -1006,7 +1037,7 @@ default_on_exit(void)
 
     log_print(L_ERROR, "cFep退出处理,关闭所有连接\n");
 
-    for (i = 0; i < ARRAY_SIZE(node); i++)
+    for (i = 0; i < (int)ARRAY_SIZE(node); i++)
     {
         LIST_FOR_EACH_SAFE(piter, ptmp, node[i])
         {
@@ -1032,7 +1063,7 @@ static void
 print_ver_info(void)
 {
     log_print(L_ERROR, "*****************************************************\n");
-    log_print(L_ERROR, "SanXing cFep [Version %s] Author : LiuNing\n", VERSION);
+    log_print(L_ERROR, "Open Source cFep [Version %s] Author : LiuNing\n", VERSION);
     log_print(L_ERROR, "协议类型       : %s\n", ptcl ? ptcl->pname : "未知!");
     log_print(L_ERROR, "后台TCP登录端口: %d\n", the_prun.pcfg.app_tcp_port);
     log_print(L_ERROR, "终端TCP登录端口: %d\n", the_prun.pcfg.terminal_tcp_port);
@@ -1059,6 +1090,9 @@ print_ver_info(void)
  */
 int main(int argc, char **argv)
 {
+    (void)argc;
+    (void)argv;
+
     int count = 0;
 
     /* 1. 数据结构初始化 */
@@ -1081,6 +1115,14 @@ int main(int argc, char **argv)
     the_prun.pcfg.count = MAX(500, the_prun.pcfg.count);
     the_prun.pcfg.delay = MAX(1, the_prun.pcfg.delay);
     the_max_frame_bytes = the_prun.pcfg.max_frame_bytes;
+    the_rbuf = (unsigned char *)malloc((size_t)the_max_frame_bytes);
+    if (the_rbuf == NULL)
+    {
+        fprintf(stderr, "分配报文缓存失败!\n");
+        getchar();
+        goto __cFep_end;
+    }
+    the_rbuf_cap = the_max_frame_bytes;
     (void)log_init();
     log_set_level(the_prun.pcfg.default_debug_level, the_prun.pcfg.default_log_level);
 
@@ -1209,6 +1251,9 @@ int main(int argc, char **argv)
     }
 
 __cFep_end:
+    free(the_rbuf);
+    the_rbuf = NULL;
+    the_rbuf_cap = 0;
     socket_exit();
     getchar();
 
