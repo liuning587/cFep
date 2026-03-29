@@ -49,6 +49,9 @@ wupdate_start(const char *psoftname,
         const char *psoftver,
         const char *purlini);
 
+extern void
+cfep_win_console_utf8(void);
+
 /**
  ******************************************************************************
  * @brief   显示在线终端连接信息
@@ -1092,6 +1095,11 @@ int main(int argc, char **argv)
 {
     (void)argc;
     (void)argv;
+
+#ifdef _WIN32
+    /* 源码字符串为 UTF-8；控制台默认 GBK 会乱码，双击运行前无 chcp 65001 时须在此切换 */
+    cfep_win_console_utf8();
+#endif
 
     int count = 0;
 

@@ -4,6 +4,15 @@
  */
 #if defined(_WIN32) || defined(__WIN32)
 
+#include <windows.h>
+
+void
+cfep_win_console_utf8(void)
+{
+    (void)SetConsoleOutputCP(65001);
+    (void)SetConsoleCP(65001);
+}
+
 int
 wupdate_start(const char *psoftname, const char *psoftver, const char *purlini)
 {
