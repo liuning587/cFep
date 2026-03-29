@@ -83,6 +83,13 @@ $(TARGET): $(OBJS) | $(OBJDIR)
 $(OBJDIR)/%.o: %.c | $(OBJDIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
+# compressfun*.c 为历史实现，length 与循环变量混用 int/size_t，单独放宽 sign-compare
+$(OBJDIR)/compressfun.o: compressfun.c | $(OBJDIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -Wno-sign-compare -c -o $@ $<
+
+$(OBJDIR)/compressfunnew.o: compressfunnew.c | $(OBJDIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -Wno-sign-compare -c -o $@ $<
+
 $(OBJDIR):
 	@mkdir -p $(OBJDIR)
 
