@@ -1,2 +1,7 @@
 /Debug
 /.settings
+/build
+*.d
+*.o
+*.log
+*.exe

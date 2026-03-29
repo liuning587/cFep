@@ -3,7 +3,7 @@
  * @file      ttynet.c
  * @brief     C Source file of ttynet.c.
  * @details   This file including all API functions's implement of ttynet.c.
- * @copyright Copyrigth(C), 2008-2012,Sanxing Electric Co.,Ltd.
+ * @copyright 
  ******************************************************************************
  */
  
@@ -78,7 +78,8 @@ typedef struct
 /*-----------------------------------------------------------------------------
  Section: Global Variables
  ----------------------------------------------------------------------------*/
-extern unsigned char the_rbuf[2048]; //全局缓存
+extern unsigned char *the_rbuf;
+extern int the_rbuf_cap;
 
 /*-----------------------------------------------------------------------------
  Section: Local Variables
@@ -158,7 +159,7 @@ ttynet_accept_client(ttynet_run_t *prun)
 static void
 ttynet_recv_client_cmd(ttynet_run_t *prun)
 {
-    int len;
+    int len = 0;
     client_t *pc;
     struct ListNode *ptmp;
     struct ListNode *piter;
@@ -167,7 +168,8 @@ ttynet_recv_client_cmd(ttynet_run_t *prun)
     {
         pc = MemToObj(piter, client_t, node);
 
-        while ((len = socket_recv(pc->socket, the_rbuf, sizeof(the_rbuf))) > 0)
+        while (the_rbuf && the_rbuf_cap > 0
+                && (len = socket_recv(pc->socket, the_rbuf, (size_t)the_rbuf_cap)) > 0)
         {
             //todo: 检测命令
         }

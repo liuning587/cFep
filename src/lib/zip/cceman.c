@@ -53,17 +53,22 @@ int DeData(BYTE * DataBuf, int DataLen)
 	
 	memset(RecvBuf,0,sizeof(RecvBuf));
 	
-	if(DataLen<4)
+	if(DataLen < 5)
 		return -3;
 	length = DataBuf[2] * 0x100 + DataBuf[3];
-	
-	if(DataBuf[0] != 0x88 || DataLen - 5 != length || DataBuf[DataLen -1] != 0x77)
+	if (length < 0 || length > (int)sizeof(RecvBuf) - 1)
+		return -3;
+	if (length != DataLen - 5)
+		return -3;
+
+	if(DataBuf[0] != 0x88 || DataBuf[DataLen -1] != 0x77)
 	{
-		memcpy(RecvBuf,&DataBuf,DataLen);
+		if (DataLen <= (int)sizeof(RecvBuf))
+			memcpy(RecvBuf, DataBuf, (size_t)DataLen);
 		return -3;
 	}
-	
-	memcpy(RecvBuf,&DataBuf[4],length);
+
+	memcpy(RecvBuf,&DataBuf[4],(size_t)length);
 	temp.x = RecvBuf;
 	temp.length = length;
 	

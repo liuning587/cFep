@@ -165,6 +165,7 @@ semDelete(SEM_ID semId)
     (void)CloseHandle((HANDLE)semId);
 #else
     pthread_mutex_destroy((pthread_mutex_t *)semId);
+    free(semId);
 #endif
 }
 
@@ -184,10 +185,14 @@ extern status_t
 semTake(SEM_ID semId, uint32_t timeout)
 {
 #ifdef _WIN32
-    if (!WaitForSingleObject((HANDLE)semId, timeout ? timeout * 10 : INFINITE))
+    DWORD w;
+
+    w = WaitForSingleObject((HANDLE)semId, timeout ? timeout * 10 : INFINITE);
+    if (w == WAIT_OBJECT_0 || w == WAIT_ABANDONED)
     {
-        return ERROR;
+        return OK;
     }
+    return ERROR;
 #else
     (void)timeout;
     pthread_mutex_lock((pthread_mutex_t *)semId);
